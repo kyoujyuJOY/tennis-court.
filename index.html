@@ -17,7 +17,6 @@
   <style>
     :root {
       --primary: #0284c7;
-      --primary-dark: #0369a1;
       --bg: #f8fafc;
       --card-bg: #ffffff;
       --text: #0f172a;
@@ -35,19 +34,14 @@
       margin: 0;
       padding: 16px;
       padding-bottom: 80px;
-      position: relative;
-      overflow-x: hidden;
     }
-    h1 {
-      font-size: 1.25rem;
-      margin: 0 0 14px 0;
-      text-align: center;
-      cursor: pointer;
+    h1 { 
+      font-size: 1.2rem; 
+      margin: 0 0 14px 0; 
+      text-align: center; 
       user-select: none;
-      transition: transform 0.1s;
+      cursor: pointer;
     }
-    h1:active { transform: scale(0.96); }
-
     .card {
       background: var(--card-bg);
       border-radius: 12px;
@@ -83,11 +77,22 @@
       font-weight: 600;
       cursor: pointer;
       user-select: none;
-      transition: background-color 0.15s, transform 0.1s;
+      transition: background-color 0.2s, transform 0.1s;
     }
-    button:active { transform: scale(0.97); }
+    button:active { transform: scale(0.98); }
     button.btn-secondary { background: #e2e8f0; color: #334155; }
     button.btn-copy { background: var(--accent); }
+    
+    /* 覚醒ボタン演出 */
+    button.charging {
+      background: linear-gradient(135deg, #ef4444, #f97316) !important;
+      animation: pulseCharge 0.5s infinite alternate;
+      transform: scale(1.02);
+    }
+    @keyframes pulseCharge {
+      from { filter: drop-shadow(0 0 4px #ef4444); }
+      to { filter: drop-shadow(0 0 14px #f97316); }
+    }
 
     .member-grid {
       display: flex;
@@ -104,9 +109,7 @@
       cursor: pointer;
       user-select: none;
       border: 1px solid transparent;
-      transition: transform 0.1s;
     }
-    .home-badge:active { transform: scale(0.94); }
     .status-normal { background: #e0f2fe; color: #0369a1; border-color: #bae6fd; }
     .status-late { background: #fef3c7; color: #b45309; border-color: #fde68a; font-weight: bold; }
     .status-absent { background: #f1f5f9; color: #94a3b8; border-color: #e2e8f0; text-decoration: line-through; }
@@ -153,6 +156,7 @@
       border-color: #7dd3fc;
       font-weight: bold;
     }
+
     .btn-cl-tag.active {
       background: #ccfbf1;
       color: #0f766e;
@@ -192,7 +196,6 @@
     }
     .hint { font-size: 0.75rem; color: #64748b; margin-top: 6px; }
 
-    /* タブバー */
     .tab-bar {
       position: fixed;
       bottom: 0;
@@ -224,83 +227,52 @@
     }
     .tab-icon { font-size: 1.2rem; }
 
-    /* ギミック4: 覚醒ボタンアニメーション */
-    .btn-awakening {
-      background: linear-gradient(45deg, #f97316, #ef4444, #e11d48) !important;
-      box-shadow: 0 0 15px rgba(239, 68, 68, 0.75) !important;
-      animation: pulseGlow 0.5s infinite alternate !important;
-    }
-    @keyframes pulseGlow {
-      from { transform: scale(0.98); filter: brightness(1); }
-      to { transform: scale(1.03); filter: brightness(1.25); }
-    }
-    .screen-shake {
-      animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
-    }
-    @keyframes shake {
-      10%, 90% { transform: translate3d(-2px, 0, 0); }
-      20%, 80% { transform: translate3d(3px, 0, 0); }
-      30%, 50%, 70% { transform: translate3d(-5px, 0, 0); }
-      40%, 60% { transform: translate3d(5px, 0, 0); }
-    }
-
-    /* 隠し演出用モーダル共通 */
+    /* 隠しモーダル & 紙吹雪 */
     .easter-modal-overlay {
       position: fixed;
-      inset: 0;
-      background: rgba(15, 23, 42, 0.6);
-      backdrop-filter: blur(4px);
-      display: none;
-      align-items: center;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(15, 23, 42, 0.7);
+      display: flex;
       justify-content: center;
+      align-items: center;
       z-index: 9999;
       padding: 20px;
+      animation: fadeIn 0.2s ease-out;
     }
     .easter-modal {
       background: #ffffff;
       border-radius: 16px;
       padding: 20px;
-      max-width: 340px;
       width: 100%;
+      max-width: 360px;
       text-align: center;
-      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
-      animation: modalPop 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
     }
-    @keyframes modalPop {
-      0% { transform: scale(0.7); opacity: 0; }
-      100% { transform: scale(1); opacity: 1; }
-    }
-    .easter-modal-icon { font-size: 2.8rem; margin-bottom: 8px; }
-    .easter-modal-title { font-size: 1.1rem; font-weight: 800; color: #0f172a; margin-bottom: 8px; }
-    .easter-modal-body { font-size: 0.9rem; color: #475569; line-height: 1.6; margin-bottom: 16px; text-align: left; }
-    .easter-modal-btn { width: 100%; padding: 10px; border-radius: 8px; font-weight: 700; }
-
-    /* 紙吹雪Canvas */
-    #confettiCanvas {
+    .easter-modal h3 { margin: 0 0 10px 0; color: #0284c7; }
+    .easter-modal p { font-size: 0.95rem; color: #334155; line-height: 1.6; white-space: pre-wrap; }
+    .confetti-particle {
       position: fixed;
-      inset: 0;
+      user-select: none;
       pointer-events: none;
-      z-index: 9998;
+      z-index: 10000;
+      animation: confettiFall 2.8s forwards linear;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    @keyframes confettiFall {
+      0% { transform: translateY(-5vh) rotate(0deg); opacity: 1; }
+      100% { transform: translateY(105vh) rotate(720deg); opacity: 0; }
     }
   </style>
 </head>
 <body>
 
-  <canvas id="confettiCanvas"></canvas>
-
-  <div id="easterModalOverlay" class="easter-modal-overlay" onclick="closeEasterModal()">
-    <div class="easter-modal" onclick="event.stopPropagation()">
-      <div id="easterModalIcon" class="easter-modal-icon">🎉</div>
-      <div id="easterModalTitle" class="easter-modal-title">タイトル</div>
-      <div id="easterModalBody" class="easter-modal-body">メッセージ</div>
-      <button class="easter-modal-btn" onclick="closeEasterModal()">OK</button>
-    </div>
-  </div>
-
   <!-- ==================== TAB 1: コート割（ホーム） ==================== -->
   <div id="tabHome">
-    <!-- ギミック1: タイトル7回連打 -->
-    <h1 id="appTitle" onclick="handleTitleTap()">🎾 コート割り</h1>
+    <!-- ギミック①: タイトル7連打 -->
+    <h1 id="appTitle" onclick="handleTitleClick()">🎾 コート割り</h1>
 
     <div class="card">
       <div class="card-title">⚙️ コート & レベリ配置設定</div>
@@ -324,14 +296,9 @@
       <div class="member-grid" id="homeMemberList"></div>
     </div>
 
-    <!-- ギミック4: 生成ボタン長押し覚醒 -->
     <div style="margin-bottom: 14px; display: flex; gap: 8px;">
-      <button id="btnGenerate" style="flex: 2; padding: 12px; font-size: 1rem;" 
-              onclick="onGenerateClick()"
-              ontouchstart="startAwakening(event)" ontouchend="cancelAwakening()"
-              onmousedown="startAwakening(event)" onmouseup="cancelAwakening()" onmouseleave="cancelAwakening()">
-        ⚡ コート割りを生成
-      </button>
+      <!-- ギミック④: 生成ボタン長押し覚醒 -->
+      <button id="generateBtn" style="flex: 2; padding: 12px; font-size: 1rem;" onclick="generateCourtTable()">⚡ コート割りを生成</button>
       <button class="btn-secondary" style="flex: 1;" onclick="clearHistory()">履歴リセット</button>
     </div>
 
@@ -363,8 +330,8 @@
     <div class="card">
       <div class="card-title">➕ メンバー新規追加</div>
       <div class="flex-row">
-        <!-- ギミック3: 隠しキーワード追加 -->
-        <input type="text" id="newMemberName" placeholder="名前 (裏技/チート入力で…)">
+        <!-- ギミック③: 隠しコマンド受付 -->
+        <input type="text" id="newMemberName" placeholder="名前">
         <button onclick="addMember()">追加</button>
       </div>
     </div>
@@ -375,8 +342,8 @@
         <button class="btn-secondary" style="font-size: 0.75rem; padding: 2px 6px;" onclick="clearAll()">全削除</button>
       </div>
       <div class="hint" style="margin-bottom: 10px;">
-        <b>👑 レベリ</b>: 全体統括（長押しで格言発動）<br>
-        <b>🏸 リーダー</b>: 各コートの仕切り役（各面1人配分）<br>
+        <b>👑 レベリ</b>: 全体統括（各コートリーダーも兼ねます）<br>
+        <b>🏸 リーダー</b>: 各コートの仕切り役（各コート1人配分）<br>
         <b>固定区分</b>: ☆なし ➔ ★固定 ➔ ◆第2固定
       </div>
       <table class="settings-table">
@@ -407,7 +374,46 @@
   </div>
 
   <script>
-    // デフォルトメンバー（安全なダミー名）
+    /* ==========================================================================
+       🎮 隠しメッセージ・ギミック設定（ここを自由に変更してください）
+       ========================================================================== */
+    const EASTER_EGG_CONFIG = {
+      // ① タイトル7連打
+      titleTap: {
+        title: "🎉 隠しメッセージ解禁！",
+        message: "練習進行いつも本当にお疲れさま！\nみんなが楽しめているのはあなたのおかげ✨"
+      },
+
+      // ② レベリ長押し（ランダムで1つ表示。カンマ区切りで追加可能）
+      leaderQuotes: [
+        "「メニューに困ったら前衛固定、後衛固定」",
+        "「固定でミスして気まずい」",
+        "「コート割り文句言うやつは次のコートリーダー」",
+        "「声出ししてなにも返ってこなかった時が一番さみしい」",
+        "「ビギナーあがりの子にメニューを合わせるのムズイ」",
+        "「レベリは孤独」",
+        "「テーマそっちのけのメニュー」",
+        "「雨でできなかったメニュー使いまわす」",
+        "「練習に熱中して時計見てない」"
+      ],
+
+      // ③ シークレットコマンド（メンバー追加で打ち込む言葉）
+      secretCommands: {
+        triggerWords: ["JOY"],
+        title: "🔓 シークレットコマンド発動",
+        message: "【開発者裏コマンド】\nJOYがこれからも続きますように"
+      },
+
+      // ④ 生成ボタン覚醒長押し
+      chargeGeneration: {
+        buttonChargingText: "🔥 覚醒召喚中… 🔥",
+        alertMessage: "⚡【覚醒召喚】今日の練習、うまくいきますように！⚡"
+      }
+    };
+
+    /* ==========================================================================
+       アプリ本体ロジック
+       ========================================================================== */
     const defaultMembers = [
       { name: 'メンバーA', status: 'normal', isLeader: true, isCourtLeader: true, koteiLevel: 1 },
       { name: 'メンバーB', status: 'normal', isLeader: false, isCourtLeader: true, koteiLevel: 1 },
@@ -428,7 +434,7 @@
     window.onload = () => {
       loadAll();
       renderAll();
-      initConfetti();
+      setupChargeButton();
     };
 
     function save() {
@@ -444,7 +450,7 @@
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
       } catch (e) {
-        console.error('保存失敗', e);
+        console.error('保存に失敗しました', e);
       }
     }
 
@@ -468,7 +474,7 @@
           return;
         }
       } catch (e) {
-        console.error('復元失敗', e);
+        console.error('復元に失敗しました', e);
       }
       members = defaultMembers;
       separatePairs = [];
@@ -548,14 +554,10 @@
           tagClass = 'btn-kotei-tag kotei-2';
         }
 
-        // ギミック2: レベリ長押しトリガー
         tr.innerHTML = `
           <td>${m.name}</td>
           <td>
-            <input type="radio" name="leaderRadio" value="${idx}" ${isLeaderChecked} 
-                   onchange="setLeader(${idx})"
-                   ontouchstart="startLeaderLongPress(${idx})" ontouchend="cancelLeaderLongPress()"
-                   onmousedown="startLeaderLongPress(${idx})" onmouseup="cancelLeaderLongPress()" onmouseleave="cancelLeaderLongPress()">
+            <input type="radio" name="leaderRadio" id="leaderRadio_${idx}" value="${idx}" ${isLeaderChecked} onchange="setLeader(${idx})">
           </td>
           <td>
             <span class="${clClass}" onclick="toggleCourtLeader(${idx})">${clText}</span>
@@ -568,6 +570,10 @@
           </td>
         `;
         tbody.appendChild(tr);
+
+        // ギミック②: レベリ長押しイベント登録
+        const radio = tr.querySelector(`#leaderRadio_${idx}`);
+        attachLongPress(radio, () => triggerLeaderLongPressQuote(idx));
       });
 
       renderSeparatePairSection();
@@ -591,7 +597,9 @@
         selB.appendChild(optB);
       });
 
-      if (members.length >= 2) selB.selectedIndex = 1;
+      if (members.length >= 2) {
+        selB.selectedIndex = 1;
+      }
 
       const pairListDiv = document.getElementById('separatePairList');
       pairListDiv.innerHTML = '';
@@ -607,12 +615,12 @@
       const p1 = document.getElementById('separateSelectA').value;
       const p2 = document.getElementById('separateSelectB').value;
       if (!p1 || !p2 || p1 === p2) {
-        showEasterModal('⚠️ 確認', '異なる2人のメンバーを選択してください。', '💡');
+        alert('異なる2人のメンバーを選択してください');
         return;
       }
       const exists = separatePairs.some(p => (p[0] === p1 && p[1] === p2) || (p[0] === p2 && p[1] === p1));
       if (exists) {
-        showEasterModal('⚠️ 登録済み', 'そのペアは既に登録されています。', '🚫');
+        alert('そのペアは既に登録されています');
         return;
       }
       separatePairs.push([p1, p2]);
@@ -646,7 +654,7 @@
 
     function toggleCourtLeader(idx) {
       if (members[idx].isLeader) {
-        showEasterModal('👑 レベリ権限', 'レベリは常に各コートの統括（リーダー）を兼任します！', '🎾');
+        alert('レベリは常にコートリーダーを担当します');
         return;
       }
       members[idx].isCourtLeader = !members[idx].isCourtLeader;
@@ -661,21 +669,23 @@
       renderSettings();
     }
 
-    // ギミック3: 隠しコマンド対応メンバー追加
     function addMember() {
       const input = document.getElementById('newMemberName');
-      const val = input.value.trim();
-      if (!val) return;
+      const name = input.value.trim();
+      if (!name) return;
 
-      const secretKeywords = ['裏技', 'うらわざ', 'チート', '神', 'JOY', '秘密', 'ひみつ', 'コマンド'];
-      if (secretKeywords.some(k => val.toUpperCase().includes(k.toUpperCase()))) {
+      // ギミック③: シークレットコマンド判定
+      if (EASTER_EGG_CONFIG.secretCommands.triggerWords.includes(name)) {
         input.value = '';
-        triggerEasterEgg3();
+        showEasterModal(
+          EASTER_EGG_CONFIG.secretCommands.title,
+          EASTER_EGG_CONFIG.secretCommands.message
+        );
         return;
       }
 
-      if (!members.some(m => m.name === val)) {
-        members.push({ name: val, status: 'normal', isLeader: false, isCourtLeader: false, koteiLevel: 0 });
+      if (!members.some(m => m.name === name)) {
+        members.push({ name: name, status: 'normal', isLeader: false, isCourtLeader: false, koteiLevel: 0 });
         input.value = '';
         save();
         renderAll();
@@ -709,12 +719,12 @@
     function clearHistory() {
       lastCourtGroups = [];
       save();
-      showEasterModal('🔄 履歴リセット', '前回の割り振り履歴を消去しました。完全ランダムで選出されます。', '🧹');
+      alert('割り振り履歴を消去しました。');
       document.getElementById('historyNote').textContent = '';
     }
 
     function parseCourts(str) {
-      const rawParts = str.replace(/　/g, ' ').split(/[,、\s]+/).filter(Boolean);
+      const rawParts = str.replace(/ /g, ' ').split(/[,、\s]+/).filter(Boolean);
       const result = [];
 
       rawParts.forEach(part => {
@@ -803,6 +813,10 @@
         .filter(m => m.status === 'normal' && m.koteiLevel === 2 && !m.isLeader)
         .sort(() => Math.random() - 0.5);
 
+      const normalGeneral = members
+        .filter(m => m.status === 'normal' && (m.koteiLevel === 0 || !m.koteiLevel) && !m.isLeader && !m.isCourtLeader)
+        .map(m => m.name).sort(() => Math.random() - 0.5);
+
       const lateList = members
         .filter(m => m.status === 'late')
         .sort((a, b) => (b.isCourtLeader ? 1 : 0) - (a.isCourtLeader ? 1 : 0) || (b.koteiLevel || 0) - (a.koteiLevel || 0))
@@ -831,7 +845,7 @@
         courts[targetIdx].hasCourtLeader = true;
       }
 
-      // 2. 残りコートにコートリーダーを1人ずつ配分
+      // 2. 残りの各コートにコートリーダーを1人ずつ配分
       const clQueue = [...normalCLs];
       let startIdx = Math.floor(Math.random() * numCourts);
       for (let i = 0; i < numCourts && clQueue.length > 0; i++) {
@@ -844,7 +858,7 @@
         }
       }
 
-      // 3. 固定（★）を各コート2人まで配分
+      // 3. 固定（★）を各コート最大2人まで優先配分
       const placedNames = new Set();
       courts.forEach(c => c.normals.forEach(n => placedNames.add(n)));
 
@@ -860,7 +874,7 @@
         }
       }
 
-      // 4. 固定不足コートへ遅刻の固定配分
+      // 4. 遅刻の固定配分
       let lateK1 = lateList.filter(m => m.koteiLevel === 1).map(m => m.name);
       for (let pass = 1; pass <= 2; pass++) {
         for (let i = 0; i < numCourts && lateK1.length > 0; i++) {
@@ -884,7 +898,7 @@
         }
       }
 
-      // 6. 残りのメンバーを通常/遅刻それぞれまとめる
+      // 6. 残りメンバー
       courts.forEach(c => c.normals.forEach(n => placedNames.add(n)));
       courts.forEach(c => c.lates.forEach(n => placedNames.add(n)));
 
@@ -920,14 +934,14 @@
       const chosenLeaderCourt = document.getElementById('leaderCourtSelect').value;
 
       if (courtLabels.length === 0) {
-        showEasterModal('⚠️ 確認', 'コート指定（例: 1-3）を入力してください。', '🎾');
-        return false;
+        alert('コート指定を入力してください');
+        return;
       }
 
       const activeMembers = members.filter(m => m.status !== 'absent');
       if (activeMembers.length === 0) {
-        showEasterModal('⚠️ 確認', '参加可能なメンバーがいません。出欠状況を確認してください。', '👥');
-        return false;
+        alert('参加可能なメンバーがいません');
+        return;
       }
 
       const numCourts = courtLabels.length;
@@ -971,206 +985,136 @@
       document.getElementById('resultCard').style.display = 'block';
 
       save();
-      return true;
     }
 
     function copyText() {
       const text = document.getElementById('resultText').textContent;
       navigator.clipboard.writeText(text).then(() => {
-        showEasterModal('📋 コピー完了！', '結果をクリップボードにコピーしました。<br>そのままLINEに貼り付けられます！', '✨');
+        alert('コピーしました！そのままLINEに貼り付けられます。');
       });
     }
 
-    let titleTapCount = 0;
-    let titleTapTimer = null;
+    /* ==========================================================================
+       隠しギミック実行エンジン
+       ========================================================================== */
+    // 汎用モーダル表示
+    function showEasterModal(title, message) {
+      const overlay = document.createElement('div');
+      overlay.className = 'easter-modal-overlay';
+      overlay.innerHTML = `
+        <div class="easter-modal">
+          <h3>${title}</h3>
+          <p>${message}</p>
+          <button style="margin-top:14px;width:100%;" onclick="this.closest('.easter-modal-overlay').remove()">OK</button>
+        </div>
+      `;
+      document.body.appendChild(overlay);
+    }
 
-    function handleTitleTap() {
-      titleTapCount++;
-      clearTimeout(titleTapTimer);
-      titleTapTimer = setTimeout(() => { titleTapCount = 0; }, 2500);
-
-      if (titleTapCount >= 7) {
-        titleTapCount = 0;
-        triggerEasterEgg1();
+    // 紙吹雪アニメーション
+    function launchConfetti() {
+      const emojis = ['🎾', '✨', '🔥', '🎉', '🌟', '🥇'];
+      for (let i = 0; i < 30; i++) {
+        const p = document.createElement('div');
+        p.className = 'confetti-particle';
+        p.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+        p.style.left = `${Math.random() * 100}vw`;
+        p.style.top = '-20px';
+        p.style.fontSize = `${16 + Math.random() * 20}px`;
+        p.style.animationDelay = `${Math.random() * 1.5}s`;
+        p.style.animationDuration = `${2 + Math.random() * 1.5}s`;
+        document.body.appendChild(p);
+        setTimeout(() => p.remove(), 4000);
       }
     }
 
-    function triggerEasterEgg1() {
-      startConfetti();
-      showEasterModal(
-        '🎉 隠しモード解禁！',
-        '<b>今日もナイスサーブ！練習の仕切り、本当にお疲れさまです！🎾🔥</b><br><br>' +
-        '幹部・仕切り役のあなたの努力で今日も楽しいサークルが回っています。水分補給を忘れずに思いっきり楽しんでいきましょう！',
-        '🏆'
-      );
-    }
+    // ギミック①: タイトル7連打ハンドラー
+    let titleClickCount = 0;
+    let titleClickTimer = null;
+    function handleTitleClick() {
+      titleClickCount++;
+      clearTimeout(titleClickTimer);
+      titleClickTimer = setTimeout(() => {
+        titleClickCount = 0;
+      }, 2500);
 
-    let leaderPressTimer = null;
-    const leaderSayings = [
-      '「今日の練習、全員1本良いの打ったら即交代な！」',
-      '「サーブ入らんやつは、コート外周ダッシュ1本追加！」',
-      '「声出してこ！テニスは声とノリで勝率が2割上がる！」',
-      '「チャンスボールミスったら、ボール拾い3往復確定な！」',
-      '「ダブルスはペアへの声かけが全て。ポジティブにいこう！」',
-      '「仕切り役特権：一番涼しい日陰コートは私が使います👑」'
-    ];
-
-    function startLeaderLongPress(idx) {
-      cancelLeaderLongPress();
-      leaderPressTimer = setTimeout(() => {
-        triggerEasterEgg2(idx);
-      }, 1500);
-    }
-
-    function cancelLeaderLongPress() {
-      if (leaderPressTimer) {
-        clearTimeout(leaderPressTimer);
-        leaderPressTimer = null;
+      if (titleClickCount >= 7) {
+        titleClickCount = 0;
+        launchConfetti();
+        showEasterModal(
+          EASTER_EGG_CONFIG.titleTap.title,
+          EASTER_EGG_CONFIG.titleTap.message
+        );
       }
     }
 
-    function triggerEasterEgg2(idx) {
-      cancelLeaderLongPress();
-      const randomSaying = leaderSayings[Math.floor(Math.random() * leaderSayings.length)];
-      showEasterModal(
-        '👑 レベリの格言発動',
-        `<b>${members[idx].name}</b> からの一言：<br><br><i>${randomSaying}</i>`,
-        '👑'
-      );
+    // ギミック②: レベリ長押し格言
+    function triggerLeaderLongPressQuote(idx) {
+      const leader = members[idx];
+      const quotes = EASTER_EGG_CONFIG.leaderQuotes;
+      const quote = quotes[Math.floor(Math.random() * quotes.length)];
+      showEasterModal(`レベリあるある`, quote);
     }
 
-    function triggerEasterEgg3() {
-      showEasterModal(
-        '🕹️ シークレットコマンド認識！',
-        '<b>【開発者シークレットモード起動】</b><br><br>' +
-        '✅ フルコート全自動分散エンジン：稼働中<br>' +
-        '✅ 被り最小化・NGペア分離AI：アクティブ<br>' +
-        '✅ レベリ・コートリーダー最適配置：完了<br><br>' +
-        '裏技を発見したあなたに幸運のエールを！今日も最高の練習にしよう🎾✨',
-        '⚡'
-      );
+    // 長押し検知ヘルパー
+    function attachLongPress(el, callback) {
+      let timer = null;
+      const start = (e) => {
+        timer = setTimeout(() => {
+          callback();
+        }, 1500);
+      };
+      const cancel = () => clearTimeout(timer);
+
+      el.addEventListener('mousedown', start);
+      el.addEventListener('mouseup', cancel);
+      el.addEventListener('mouseleave', cancel);
+      el.addEventListener('touchstart', start, { passive: true });
+      el.addEventListener('touchend', cancel);
+      el.addEventListener('touchcancel', cancel);
     }
 
-    let awakenTimer = null;
-    let isAwakened = false;
+    // ギミック④: 生成ボタン長押し覚醒召喚
+    function setupChargeButton() {
+      const btn = document.getElementById('generateBtn');
+      let chargeTimer = null;
+      let isCharged = false;
 
-    function startAwakening(e) {
-      isAwakened = false;
-      const btn = document.getElementById('btnGenerate');
-      awakenTimer = setTimeout(() => {
-        isAwakened = true;
-        btn.classList.add('btn-awakening');
-        btn.innerHTML = '🔥 覚醒召喚中… 🔥';
-        document.body.classList.add('screen-shake');
-        
-        setTimeout(() => {
-          document.body.classList.remove('screen-shake');
+      const startCharge = () => {
+        isCharged = false;
+        chargeTimer = setTimeout(() => {
+          isCharged = true;
+          btn.classList.add('charging');
+          btn.textContent = EASTER_EGG_CONFIG.chargeGeneration.buttonChargingText;
+          if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+        }, 1800);
+      };
+
+      const endCharge = () => {
+        clearTimeout(chargeTimer);
+        if (isCharged) {
+          isCharged = false;
+          btn.classList.remove('charging');
+          btn.textContent = '⚡ コート割りを生成';
           generateCourtTable();
-          startConfetti(1000);
-          showEasterModal(
-            '🔥 覚醒コート割り召喚！',
-            '<b>全集中！最強のコート割りを召喚しました！</b><br><br>実力・リーダー・相性・被り防止のすべてが黄金比率で結実した奇跡のペアリングです。コートへ出陣せよ！',
-            '⚡'
-          );
-          cancelAwakening();
-        }, 1200);
-      }, 2000);
-    }
-
-    function cancelAwakening() {
-      if (awakenTimer) {
-        clearTimeout(awakenTimer);
-        awakenTimer = null;
-      }
-      const btn = document.getElementById('btnGenerate');
-      btn.classList.remove('btn-awakening');
-      btn.innerHTML = '⚡ コート割りを生成';
-    }
-
-    function onGenerateClick() {
-      if (isAwakened) {
-        isAwakened = false;
-        return;
-      }
-      generateCourtTable();
-    }
-
-    function showEasterModal(title, bodyHtml, icon = '🎉') {
-      document.getElementById('easterModalTitle').textContent = title;
-      document.getElementById('easterModalBody').innerHTML = bodyHtml;
-      document.getElementById('easterModalIcon').textContent = icon;
-      document.getElementById('easterModalOverlay').style.display = 'flex';
-    }
-
-    function closeEasterModal() {
-      document.getElementById('easterModalOverlay').style.display = 'none';
-    }
-
-    // 紙吹雪パーティクルシステム
-    let confettiParticles = [];
-    let confettiAnimationId = null;
-
-    function initConfetti() {
-      const canvas = document.getElementById('confettiCanvas');
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-      window.addEventListener('resize', () => {
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-      });
-    }
-
-    function startConfetti(duration = 4000) {
-      const canvas = document.getElementById('confettiCanvas');
-      const ctx = canvas.getContext('2d');
-      const emojis = ['🎾', '✨', '🔥', '👑', '🎉', '⭐'];
-      confettiParticles = [];
-
-      for (let i = 0; i < 40; i++) {
-        confettiParticles.push({
-          x: Math.random() * canvas.width,
-          y: Math.random() * -canvas.height,
-          emoji: emojis[Math.floor(Math.random() * emojis.length)],
-          size: 18 + Math.random() * 16,
-          speedY: 2 + Math.random() * 4,
-          speedX: (Math.random() - 0.5) * 2,
-          rotation: Math.random() * 360,
-          rotSpeed: (Math.random() - 0.5) * 6
-        });
-      }
-
-      if (confettiAnimationId) cancelAnimationFrame(confettiAnimationId);
-
-      const startTime = Date.now();
-      function render() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        confettiParticles.forEach(p => {
-          p.y += p.speedY;
-          p.x += p.speedX;
-          p.rotation += p.rotSpeed;
-
-          ctx.save();
-          ctx.translate(p.x, p.y);
-          ctx.rotate((p.rotation * Math.PI) / 180);
-          ctx.font = `${p.size}px sans-serif`;
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'middle';
-          ctx.fillText(p.emoji, 0, 0);
-          ctx.restore();
-
-          if (p.y > canvas.height + 50) {
-            p.y = -30;
-            p.x = Math.random() * canvas.width;
-          }
-        });
-
-        if (Date.now() - startTime < duration) {
-          confettiAnimationId = requestAnimationFrame(render);
-        } else {
-          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          alert(EASTER_EGG_CONFIG.chargeGeneration.alertMessage);
         }
-      }
-      render();
+      };
+
+      btn.addEventListener('mousedown', startCharge);
+      btn.addEventListener('mouseup', endCharge);
+      btn.addEventListener('mouseleave', () => {
+        clearTimeout(chargeTimer);
+        btn.classList.remove('charging');
+        btn.textContent = '⚡ コート割りを生成';
+      });
+      btn.addEventListener('touchstart', startCharge, { passive: true });
+      btn.addEventListener('touchend', endCharge);
+      btn.addEventListener('touchcancel', () => {
+        clearTimeout(chargeTimer);
+        btn.classList.remove('charging');
+        btn.textContent = '⚡ コート割りを生成';
+      });
     }
 
     if ('serviceWorker' in navigator) {
