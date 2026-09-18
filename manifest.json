@@ -1,0 +1,8 @@
+{
+  "name": "コート割アプリ",
+  "short_name": "コート割",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#f5f5f7",
+  "theme_color": "#007aff"
+}

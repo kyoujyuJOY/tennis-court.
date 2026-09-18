@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <!-- 文字コード指定（文字化け防止に必須） -->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>コート割りメーカー</title>
+
+  <!-- PWA・ホーム画面設定 -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  
+  <!-- ホーム画面での表示名 -->
+  <meta name="apple-mobile-web-app-title" content="コート割">
+  
+  <!-- iPhone用アイコン指定（?v=2を付けて強制更新） -->
+  <link rel="apple-touch-icon" href="icon.png?v=2">
+  <link rel="icon" href="icon.png?v=2">
+
+  <style>
+    :root {
+      --primary: #0284c7;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --text: #0f172a;
+      --border: #e2e8f0;
+      --accent: #22c55e;
+      --star: #eab308;
+      --sub-star: #0284c7;
+      --danger: #ef4444;
+    }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 16px;
+      padding-bottom: 80px;
+    }
+    h1 { font-size: 1.2rem; margin: 0 0 14px 0; text-align: center; }
+    .card {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 14px;
+      margin-bottom: 14px;
+      border: 1px solid var(--border);
+      box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+    }
+    .card-title {
+      font-size: 0.9rem;
+      font-weight: 700;
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .flex-row { display: flex; gap: 8px; }
+    input[type="text"], select {
+      padding: 8px 10px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 0.9rem;
+      width: 100%;
+      background: #ffffff;
+    }
+    button {
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      padding: 8px 14px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    button.btn-secondary { background: #e2e8f0; color: #334155; }
+    button.btn-copy { background: var(--accent); }
+    
+    .member-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .home-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      user-select: none;
+      border: 1px solid transparent;
+    }
+    .status-normal { background: #e0f2fe; color: #0369a1; border-color: #bae6fd; }
+    .status-late { background: #fef3c7; color: #b45309; border-color: #fde68a; font-weight: bold; }
+    .status-absent { background: #f1f5f9; color: #94a3b8; border-color: #e2e8f0; text-decoration: line-through; }
+
+    .settings-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+    .settings-table th, .settings-table td {
+      padding: 10px 4px;
+      border-bottom: 1px solid var(--border);
+      text-align: center;
+      vertical-align: middle;
+      white-space: nowrap;
+    }
+    .settings-table td:first-child { 
+      text-align: left; 
+      font-weight: 600; 
+      white-space: normal;
+    }
+    
+    .btn-kotei-tag {
+      display: inline-block;
+      padding: 5px 8px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      background: #f1f5f9;
+      color: #64748b;
+      border: 1px solid #e2e8f0;
+      cursor: pointer;
+      white-space: nowrap;
+      user-select: none;
+    }
+    .btn-kotei-tag.kotei-1 {
+      background: #fef9c3;
+      color: #854d0e;
+      border-color: #fde047;
+      font-weight: bold;
+    }
+    .btn-kotei-tag.kotei-2 {
+      background: #e0f2fe;
+      color: #0369a1;
+      border-color: #7dd3fc;
+      font-weight: bold;
+    }
+
+    input[type="radio"] {
+      width: 18px;
+      height: 18px;
+      cursor: pointer;
+    }
+
+    .separate-pair-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 10px;
+      background: #fee2e2;
+      color: #991b1b;
+      border: 1px solid #fca5a5;
+      border-radius: 16px;
+      font-size: 0.85rem;
+      margin: 4px;
+    }
+
+    .court-result {
+      background: #0f172a;
+      color: #f8fafc;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      padding: 14px;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      font-size: 0.95rem;
+      line-height: 1.6;
+      margin: 10px 0;
+    }
+    .hint { font-size: 0.75rem; color: #64748b; margin-top: 6px; }
+
+    .tab-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 60px;
+      background: #ffffff;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      z-index: 100;
+    }
+    .tab-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      font-size: 0.75rem;
+      color: #64748b;
+      cursor: pointer;
+      user-select: none;
+      flex: 1;
+      padding: 8px 0;
+    }
+    .tab-item.active {
+      color: var(--primary);
+      font-weight: 700;
+    }
+    .tab-icon { font-size: 1.2rem; }
+  </style>
+</head>
+<body>
+
+  <!-- ==================== TAB 1: コート割（ホーム） ==================== -->
+  <div id="tabHome">
+    <h1>🎾 コート割り</h1>
+
+    <div class="card">
+      <div class="card-title">⚙️ コート & レベリ配置設定</div>
+      <div style="margin-bottom: 8px;">
+        <label style="font-size: 0.8rem; font-weight: 600; color: #475569;">使用コート:</label>
+        <input type="text" id="courtSetting" value="4-6" placeholder="例: 4-6、D-F" oninput="onCourtSettingChange()">
+      </div>
+      <div>
+        <label style="font-size: 0.8rem; font-weight: 600; color: #475569;">👑 レベリの配置コート:</label>
+        <select id="leaderCourtSelect" onchange="save()"></select>
+      </div>
+      <div class="hint">1-3 や D-F などの範囲指定、カンマ区切りに対応</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">
+        <span>👥 出欠状況 (<span id="activeCount">0</span>人参加)</span>
+        <button class="btn-secondary" style="font-size: 0.75rem; padding: 2px 6px;" onclick="resetStatuses()">全員通常へ</button>
+      </div>
+      <div class="hint" style="margin-bottom: 8px;">タップで切替: <b>通常 ➔ 🕒遅刻 ➔ ✕欠席</b></div>
+      <div class="member-grid" id="homeMemberList"></div>
+    </div>
+
+    <div style="margin-bottom: 14px; display: flex; gap: 8px;">
+      <button style="flex: 2; padding: 12px; font-size: 1rem;" onclick="generateCourtTable()">⚡ コート割りを生成</button>
+      <button class="btn-secondary" style="flex: 1;" onclick="clearHistory()">履歴リセット</button>
+    </div>
+
+    <div class="card" id="resultCard" style="display: none;">
+      <div class="card-title">
+        <span>📋 生成結果 <small id="historyNote" style="font-weight: normal; color: #64748b;"></small></span>
+        <button class="btn-copy" style="font-size: 0.8rem; padding: 4px 10px;" onclick="copyText()">コピー</button>
+      </div>
+      <div class="court-result" id="resultText"></div>
+    </div>
+  </div>
+
+  <!-- ==================== TAB 2: 設定（レベリ・固定・メンバー・別コート指定） ==================== -->
+  <div id="tabSettings" style="display: none;">
+    <h1>⚙️ メンバー・役割設定</h1>
+
+    <!-- 別コート指定（NGペア）設定エリア -->
+    <div class="card">
+      <div class="card-title">🚫 別コート指定（離したい2人）</div>
+      <div class="hint" style="margin-bottom: 8px;">指定したペアは同じコートに入らないように優先して分離されます</div>
+      <div style="display: flex; gap: 6px; margin-bottom: 8px;">
+        <select id="separateSelectA" style="flex: 1;"></select>
+        <span style="display: flex; align-items: center; font-size: 0.8rem; color: #64748b;">≠</span>
+        <select id="separateSelectB" style="flex: 1;"></select>
+        <button onclick="addSeparatePair()">追加</button>
+      </div>
+      <div id="separatePairList" style="display: flex; flex-wrap: wrap;"></div>
+    </div>
+
+    <!-- メンバー新規追加 -->
+    <div class="card">
+      <div class="card-title">➕ メンバー新規追加</div>
+      <div class="flex-row">
+        <input type="text" id="newMemberName" placeholder="名前 (例: 佐藤)">
+        <button onclick="addMember()">追加</button>
+      </div>
+    </div>
+
+    <!-- メンバー一覧 -->
+    <div class="card">
+      <div class="card-title">
+        <span>📋 メンバー一覧 (<span id="totalCount">0</span>人)</span>
+        <button class="btn-secondary" style="font-size: 0.75rem; padding: 2px 6px;" onclick="clearAll()">全削除</button>
+      </div>
+      <div class="hint" style="margin-bottom: 10px;">
+        <b>👑 レベリ</b>: 全体を取り仕切る人（丸を選択）<br>
+        <b>固定区分</b>: タップして <b>☆なし ➔ ★固定 ➔ ◆第2固定</b> を切替
+      </div>
+      <table class="settings-table">
+        <thead>
+          <tr>
+            <th>名前</th>
+            <th style="width: 60px;">👑レベリ</th>
+            <th style="width: 80px;">固定区分</th>
+            <th style="width: 40px;">削除</th>
+          </tr>
+        </thead>
+        <tbody id="settingsTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ==================== 下部タブバー ==================== -->
+  <div class="tab-bar">
+    <div class="tab-item active" id="tabBtnHome" onclick="switchTab('home')">
+      <span class="tab-icon">🎾</span>
+      <span>コート割</span>
+    </div>
+    <div class="tab-item" id="tabBtnSettings" onclick="switchTab('settings')">
+      <span class="tab-icon">⚙️</span>
+      <span>メンバー設定</span>
+    </div>
+  </div>
+
+  <script>
+    const defaultMembers = [
+      { name: '加藤', status: 'normal', isLeader: true, koteiLevel: 1 },
+      { name: '宮島', status: 'normal', isLeader: false, koteiLevel: 1 },
+      { name: 'はせゆら', status: 'normal', isLeader: false, koteiLevel: 1 },
+      { name: 'ぱるきあ', status: 'normal', isLeader: false, koteiLevel: 2 },
+      { name: 'あんな', status: 'normal', isLeader: false, koteiLevel: 2 },
+      { name: 'きょうこ', status: 'normal', isLeader: false, koteiLevel: 0 },
+      { name: 'はる', status: 'normal', isLeader: false, koteiLevel: 0 },
+      { name: 'あいこ', status: 'normal', isLeader: false, koteiLevel: 0 },
+      { name: 'みゆう', status: 'late', isLeader: false, koteiLevel: 0 },
+      { name: 'りな', status: 'late', isLeader: false, koteiLevel: 0 },
+      { name: 'かのん', status: 'late', isLeader: false, koteiLevel: 0 }
+    ];
+
+    let members = [];
+    let separatePairs = [];
+    let lastCourtGroups = [];
+    const STORAGE_KEY = 'tennis_app_state_v2';
+
+    window.onload = () => {
+      loadAll();
+      renderAll();
+    };
+
+    function save() {
+      const leaderSelect = document.getElementById('leaderCourtSelect');
+      const state = {
+        members: members,
+        separatePairs: separatePairs,
+        courtSetting: document.getElementById('courtSetting').value,
+        leaderCourt: leaderSelect ? leaderSelect.value : 'auto',
+        lastCourtGroups: lastCourtGroups,
+        lastResult: document.getElementById('resultText').textContent
+      };
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      } catch (e) {
+        console.error('保存に失敗しました', e);
+      }
+    }
+
+    function loadAll() {
+      try {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (saved) {
+          const state = JSON.parse(saved);
+          members = Array.isArray(state.members) && state.members.length > 0 ? state.members : defaultMembers;
+          separatePairs = Array.isArray(state.separatePairs) ? state.separatePairs : [];
+          if (state.courtSetting) document.getElementById('courtSetting').value = state.courtSetting;
+          if (Array.isArray(state.lastCourtGroups)) lastCourtGroups = state.lastCourtGroups;
+          updateLeaderCourtOptions(state.leaderCourt || 'auto');
+          if (state.lastResult) {
+            document.getElementById('resultText').textContent = state.lastResult;
+            document.getElementById('resultCard').style.display = 'block';
+          }
+          return;
+        }
+      } catch (e) {
+        console.error('復元に失敗しました', e);
+      }
+      members = defaultMembers;
+      separatePairs = [];
+      updateLeaderCourtOptions('auto');
+      save();
+    }
+
+    function onCourtSettingChange() {
+      updateLeaderCourtOptions();
+      save();
+    }
+
+    function switchTab(tab) {
+      if (tab === 'home') {
+        document.getElementById('tabHome').style.display = 'block';
+        document.getElementById('tabSettings').style.display = 'none';
+        document.getElementById('tabBtnHome').classList.add('active');
+        document.getElementById('tabBtnSettings').classList.remove('active');
+        renderHome();
+      } else {
+        document.getElementById('tabHome').style.display = 'none';
+        document.getElementById('tabSettings').style.display = 'block';
+        document.getElementById('tabBtnHome').classList.remove('active');
+        document.getElementById('tabBtnSettings').classList.add('active');
+        renderSettings();
+      }
+    }
+
+    function renderAll() {
+      renderHome();
+      renderSettings();
+    }
+
+    function renderHome() {
+      const list = document.getElementById('homeMemberList');
+      list.innerHTML = '';
+
+      let activeCount = 0;
+      members.forEach((m, idx) => {
+        if (m.status !== 'absent') activeCount++;
+
+        const badge = document.createElement('div');
+        badge.className = `home-badge status-${m.status}`;
+        badge.onclick = () => toggleStatus(idx);
+
+        let icon = '';
+        if (m.status === 'late') icon = '🕒 ';
+        if (m.status === 'absent') icon = '✕ ';
+
+        badge.innerHTML = `${icon}${m.name}`;
+        list.appendChild(badge);
+      });
+
+      document.getElementById('activeCount').textContent = activeCount;
+    }
+
+    function renderSettings() {
+      document.getElementById('totalCount').textContent = members.length;
+      const tbody = document.getElementById('settingsTableBody');
+      tbody.innerHTML = '';
+
+      members.forEach((m, idx) => {
+        const tr = document.createElement('tr');
+        const isLeaderChecked = m.isLeader ? 'checked' : '';
+
+        let tagText = '☆ なし';
+        let tagClass = 'btn-kotei-tag';
+        if (m.koteiLevel === 1) {
+          tagText = '★ 固定';
+          tagClass = 'btn-kotei-tag kotei-1';
+        } else if (m.koteiLevel === 2) {
+          tagText = '◆ 第2固定';
+          tagClass = 'btn-kotei-tag kotei-2';
+        }
+
+        tr.innerHTML = `
+          <td>${m.name}</td>
+          <td>
+            <input type="radio" name="leaderRadio" value="${idx}" ${isLeaderChecked} onchange="setLeader(${idx})">
+          </td>
+          <td>
+            <span class="${tagClass}" onclick="cycleKotei(${idx})">${tagText}</span>
+          </td>
+          <td>
+            <b style="cursor:pointer;color:#ef4444;font-size:1.1rem;" onclick="removeMember(${idx})">×</b>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      renderSeparatePairSection();
+    }
+
+    function renderSeparatePairSection() {
+      const selA = document.getElementById('separateSelectA');
+      const selB = document.getElementById('separateSelectB');
+      selA.innerHTML = '';
+      selB.innerHTML = '';
+
+      members.forEach(m => {
+        const optA = document.createElement('option');
+        optA.value = m.name;
+        optA.textContent = m.name;
+        selA.appendChild(optA);
+
+        const optB = document.createElement('option');
+        optB.value = m.name;
+        optB.textContent = m.name;
+        selB.appendChild(optB);
+      });
+
+      if (members.length >= 2) {
+        selB.selectedIndex = 1;
+      }
+
+      const pairListDiv = document.getElementById('separatePairList');
+      pairListDiv.innerHTML = '';
+      separatePairs.forEach((pair, idx) => {
+        const span = document.createElement('span');
+        span.className = 'separate-pair-badge';
+        span.innerHTML = `🚫 ${pair[0]} と ${pair[1]} <b style="cursor:pointer;margin-left:4px;color:#ef4444;" onclick="removeSeparatePair(${idx})">×</b>`;
+        pairListDiv.appendChild(span);
+      });
+    }
+
+    function addSeparatePair() {
+      const p1 = document.getElementById('separateSelectA').value;
+      const p2 = document.getElementById('separateSelectB').value;
+      if (!p1 || !p2 || p1 === p2) {
+        alert('異なる2人のメンバーを選択してください');
+        return;
+      }
+      const exists = separatePairs.some(p => (p[0] === p1 && p[1] === p2) || (p[0] === p2 && p[1] === p1));
+      if (exists) {
+        alert('そのペアは既に登録されています');
+        return;
+      }
+      separatePairs.push([p1, p2]);
+      save();
+      renderSeparatePairSection();
+    }
+
+    function removeSeparatePair(idx) {
+      separatePairs.splice(idx, 1);
+      save();
+      renderSeparatePairSection();
+    }
+
+    function toggleStatus(idx) {
+      const cycle = ['normal', 'late', 'absent'];
+      const cur = members[idx].status || 'normal';
+      members[idx].status = cycle[(cycle.indexOf(cur) + 1) % cycle.length];
+      save();
+      renderHome();
+    }
+
+    function setLeader(idx) {
+      members.forEach((m, i) => {
+        m.isLeader = (i === idx);
+      });
+      members[idx].koteiLevel = 1;
+      save();
+      renderAll();
+    }
+
+    function cycleKotei(idx) {
+      const cur = members[idx].koteiLevel || 0;
+      members[idx].koteiLevel = (cur + 1) % 3;
+      save();
+      renderSettings();
+    }
+
+    function addMember() {
+      const input = document.getElementById('newMemberName');
+      const name = input.value.trim();
+      if (!name) return;
+      if (!members.some(m => m.name === name)) {
+        members.push({ name: name, status: 'normal', isLeader: false, koteiLevel: 0 });
+        input.value = '';
+        save();
+        renderAll();
+      }
+    }
+
+    function removeMember(idx) {
+      const removedName = members[idx].name;
+      members.splice(idx, 1);
+      separatePairs = separatePairs.filter(p => p[0] !== removedName && p[1] !== removedName);
+      save();
+      renderAll();
+    }
+
+    function resetStatuses() {
+      members.forEach(m => m.status = 'normal');
+      save();
+      renderHome();
+    }
+
+    function clearAll() {
+      if (confirm('メンバーを全員削除しますか？')) {
+        members = [];
+        separatePairs = [];
+        lastCourtGroups = [];
+        save();
+        renderAll();
+      }
+    }
+
+    function clearHistory() {
+      lastCourtGroups = [];
+      save();
+      alert('割り振り履歴を消去しました。');
+      document.getElementById('historyNote').textContent = '';
+    }
+
+    function parseCourts(str) {
+      const rawParts = str.replace(/ /g, ' ').split(/[,、\s]+/).filter(Boolean);
+      const result = [];
+
+      rawParts.forEach(part => {
+        const numRange = part.match(/^(\d+)[-〜~](\d+)$/);
+        if (numRange) {
+          const start = parseInt(numRange[1]);
+          const end = parseInt(numRange[2]);
+          const step = start <= end ? 1 : -1;
+          for (let i = start; step > 0 ? i <= end : i >= end; i += step) result.push(String(i));
+          return;
+        }
+
+        const alphaRange = part.match(/^([a-zA-Z])[-〜~]([a-zA-Z])$/);
+        if (alphaRange) {
+          const startCode = alphaRange[1].charCodeAt(0);
+          const endCode = alphaRange[2].charCodeAt(0);
+          const step = startCode <= endCode ? 1 : -1;
+          for (let code = startCode; step > 0 ? code <= endCode : code >= endCode; code += step) {
+            result.push(String.fromCharCode(code).toUpperCase());
+          }
+          return;
+        }
+
+        result.push(part.toUpperCase());
+      });
+
+      return result;
+    }
+
+    function updateLeaderCourtOptions(selectedValue) {
+      const courtStr = document.getElementById('courtSetting').value.trim();
+      const courts = parseCourts(courtStr);
+      const select = document.getElementById('leaderCourtSelect');
+      const currentVal = selectedValue || select.value || 'auto';
+
+      select.innerHTML = '<option value="auto">🎲 おまかせ（自動分散）</option>';
+      courts.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c;
+        opt.textContent = `${c} コート`;
+        if (c === currentVal) opt.selected = true;
+        select.appendChild(opt);
+      });
+    }
+
+    function calculatePenaltyScore(courtAssignments) {
+      let penalty = 0;
+
+      courtAssignments.forEach(court => {
+        const allInCourt = [...court.normals, ...court.lates];
+        for (let i = 0; i < allInCourt.length; i++) {
+          for (let j = i + 1; j < allInCourt.length; j++) {
+            const p1 = allInCourt[i];
+            const p2 = allInCourt[j];
+
+            separatePairs.forEach(pair => {
+              if ((pair[0] === p1 && pair[1] === p2) || (pair[0] === p2 && pair[1] === p1)) {
+                penalty += 1000;
+              }
+            });
+
+            lastCourtGroups.forEach(lastGroup => {
+              if (lastGroup.includes(p1) && lastGroup.includes(p2)) {
+                penalty++;
+              }
+            });
+          }
+        }
+      });
+      return penalty;
+    }
+
+    function tryGenerateCourts(courtLabels, targetSizes, chosenLeaderCourt) {
+      const numCourts = courtLabels.length;
+      const leader = members.find(m => m.status === 'normal' && m.isLeader);
+
+      const normalKotei1 = members
+        .filter(m => m.status === 'normal' && m.koteiLevel === 1 && !m.isLeader)
+        .map(m => m.name).sort(() => Math.random() - 0.5);
+
+      const normalKotei2 = members
+        .filter(m => m.status === 'normal' && m.koteiLevel === 2 && !m.isLeader)
+        .map(m => m.name).sort(() => Math.random() - 0.5);
+
+      const normalGeneral = members
+        .filter(m => m.status === 'normal' && (m.koteiLevel === 0 || !m.koteiLevel) && !m.isLeader)
+        .map(m => m.name).sort(() => Math.random() - 0.5);
+
+      const lateKotei1 = members
+        .filter(m => m.status === 'late' && m.koteiLevel === 1)
+        .map(m => m.name).sort(() => Math.random() - 0.5);
+
+      const lateKotei2 = members
+        .filter(m => m.status === 'late' && m.koteiLevel === 2)
+        .map(m => m.name).sort(() => Math.random() - 0.5);
+
+      const lateGeneral = members
+        .filter(m => m.status === 'late' && (m.koteiLevel === 0 || !m.koteiLevel))
+        .map(m => m.name).sort(() => Math.random() - 0.5);
+
+      const courts = courtLabels.map((label, idx) => ({
+        label: label,
+        targetSize: targetSizes[idx],
+        normals: [],
+        lates: [],
+        koteiCount: 0
+      }));
+
+      if (leader) {
+        let targetIdx = -1;
+        if (chosenLeaderCourt && chosenLeaderCourt !== 'auto') {
+          targetIdx = courtLabels.indexOf(chosenLeaderCourt);
+        }
+        if (targetIdx === -1) {
+          targetIdx = Math.floor(Math.random() * numCourts);
+        }
+        courts[targetIdx].normals.push(leader.name);
+        courts[targetIdx].koteiCount++;
+      }
+
+      let koteiQueue1 = [...normalKotei1];
+      for (let pass = 1; pass <= 2; pass++) {
+        let startIdx = Math.floor(Math.random() * numCourts);
+        for (let i = 0; i < numCourts && koteiQueue1.length > 0; i++) {
+          const cIdx = (startIdx + i) % numCourts;
+          if (courts[cIdx].koteiCount < pass && courts[cIdx].normals.length < courts[cIdx].targetSize) {
+            courts[cIdx].normals.push(koteiQueue1.shift());
+            courts[cIdx].koteiCount++;
+          }
+        }
+      }
+
+      let lateKoteiQueue1 = [...lateKotei1];
+      for (let pass = 1; pass <= 2; pass++) {
+        for (let i = 0; i < numCourts && lateKoteiQueue1.length > 0; i++) {
+          if (courts[i].koteiCount < pass && (courts[i].normals.length + courts[i].lates.length) < courts[i].targetSize) {
+            courts[i].lates.push(lateKoteiQueue1.shift());
+            courts[i].koteiCount++;
+          }
+        }
+      }
+
+      let koteiQueue2 = [...normalKotei2];
+      for (let pass = 1; pass <= 2; pass++) {
+        let startIdx = Math.floor(Math.random() * numCourts);
+        for (let i = 0; i < numCourts && koteiQueue2.length > 0; i++) {
+          const cIdx = (startIdx + i) % numCourts;
+          if (courts[cIdx].koteiCount < pass && courts[cIdx].normals.length < courts[cIdx].targetSize) {
+            courts[cIdx].normals.push(koteiQueue2.shift());
+            courts[cIdx].koteiCount++;
+          }
+        }
+      }
+
+      let lateKoteiQueue2 = [...lateKotei2];
+      for (let pass = 1; pass <= 2; pass++) {
+        for (let i = 0; i < numCourts && lateKoteiQueue2.length > 0; i++) {
+          if (courts[i].koteiCount < pass && (courts[i].normals.length + courts[i].lates.length) < courts[i].targetSize) {
+            courts[i].lates.push(lateKoteiQueue2.shift());
+            courts[i].koteiCount++;
+          }
+        }
+      }
+
+      const remainingNormals = [...koteiQueue1, ...koteiQueue2, ...normalGeneral].sort(() => Math.random() - 0.5);
+      const remainingLates = [...lateKoteiQueue1, ...lateKoteiQueue2, ...lateGeneral].sort(() => Math.random() - 0.5);
+
+      for (let i = numCourts - 1; i >= 0 && remainingLates.length > 0; i--) {
+        if ((courts[i].normals.length + courts[i].lates.length) < courts[i].targetSize) {
+          courts[i].lates.push(remainingLates.shift());
+        }
+        if (i === 0 && remainingLates.length > 0) i = numCourts;
+      }
+
+      for (let i = 0; i < numCourts; i++) {
+        while ((courts[i].normals.length + courts[i].lates.length) < courts[i].targetSize && remainingNormals.length > 0) {
+          courts[i].normals.push(remainingNormals.shift());
+        }
+      }
+
+      return courts;
+    }
+
+    function generateCourtTable() {
+      const courtSettingInput = document.getElementById('courtSetting').value.trim();
+      const courtLabels = parseCourts(courtSettingInput);
+      const chosenLeaderCourt = document.getElementById('leaderCourtSelect').value;
+
+      if (courtLabels.length === 0) {
+        alert('コート指定を入力してください');
+        return;
+      }
+
+      const activeMembers = members.filter(m => m.status !== 'absent');
+      if (activeMembers.length === 0) {
+        alert('参加可能なメンバーがいません');
+        return;
+      }
+
+      const numCourts = courtLabels.length;
+      const baseCount = Math.floor(activeMembers.length / numCourts);
+      const remainder = activeMembers.length % numCourts;
+      const targetSizes = [];
+      for (let i = 0; i < numCourts; i++) {
+        targetSizes.push(baseCount + (i >= numCourts - remainder ? 1 : 0));
+      }
+
+      let bestCourts = null;
+      let bestScore = Infinity;
+
+      for (let attempt = 0; attempt < 400; attempt++) {
+        const testCourts = tryGenerateCourts(courtLabels, targetSizes, chosenLeaderCourt);
+        const score = calculatePenaltyScore(testCourts);
+        if (score < bestScore) {
+          bestScore = score;
+          bestCourts = testCourts;
+          if (score === 0) break;
+        }
+      }
+
+      lastCourtGroups = bestCourts.map(c => [...c.normals, ...c.lates]);
+
+      const lines = [];
+      bestCourts.forEach(court => {
+        if (court.normals.length === 0 && court.lates.length === 0) return;
+        const normalStr = court.normals.join('、');
+        if (court.lates.length > 0) {
+          const lateStr = `（${court.lates.join('、')}）`;
+          lines.push(normalStr.length > 0 ? `${court.label}${normalStr}、${lateStr}` : `${court.label}${lateStr}`);
+        } else {
+          lines.push(`${court.label}${normalStr}`);
+        }
+      });
+
+      const note = bestScore >= 1000 ? `(※NGペア解消不可)` : (lastCourtGroups.length > 0 && bestScore > 0 ? `(最適化済)` : `(完全シャッフル)`);
+      document.getElementById('historyNote').textContent = note;
+      document.getElementById('resultText').textContent = lines.join('\n');
+      document.getElementById('resultCard').style.display = 'block';
+
+      save();
+    }
+
+    function copyText() {
+      const text = document.getElementById('resultText').textContent;
+      navigator.clipboard.writeText(text).then(() => {
+        alert('コピーしました！そのままLINEに貼り付けられます。');
+      });
+    }
+
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./sw.js');
+    }
+  </script>
+</body>
+</html>
