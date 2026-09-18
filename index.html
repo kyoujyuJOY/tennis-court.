@@ -11,9 +11,8 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="コート割">
   
-  <!-- iPhone用アイコン指定（?v=2で更新反映） -->
-  <link rel="apple-touch-icon" href="icon.png?v=2">
-  <link rel="icon" href="icon.png?v=2">
+  <link rel="apple-touch-icon" href="icon.png?v=3">
+  <link rel="icon" href="icon.png?v=3">
 
   <style>
     :root {
@@ -24,8 +23,8 @@
       --border: #e2e8f0;
       --accent: #22c55e;
       --star: #eab308;
-      --sub-star: #0284c7;
       --danger: #ef4444;
+      --cl-color: #0d9488;
     }
     * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
     body {
@@ -113,11 +112,11 @@
       white-space: normal;
     }
     
-    .btn-kotei-tag {
+    .btn-kotei-tag, .btn-cl-tag {
       display: inline-block;
-      padding: 5px 8px;
+      padding: 5px 6px;
       border-radius: 6px;
-      font-size: 0.8rem;
+      font-size: 0.78rem;
       background: #f1f5f9;
       color: #64748b;
       border: 1px solid #e2e8f0;
@@ -135,6 +134,13 @@
       background: #e0f2fe;
       color: #0369a1;
       border-color: #7dd3fc;
+      font-weight: bold;
+    }
+
+    .btn-cl-tag.active {
+      background: #ccfbf1;
+      color: #0f766e;
+      border-color: #5eead4;
       font-weight: bold;
     }
 
@@ -218,7 +224,7 @@
         <label style="font-size: 0.8rem; font-weight: 600; color: #475569;">👑 レベリの配置コート:</label>
         <select id="leaderCourtSelect" onchange="save()"></select>
       </div>
-      <div class="hint">1-3 や D-F などの範囲指定、カンマ区切りに対応</div>
+      <div class="hint">各コートにコートリーダー（レベリ含む）を1人ずつ自動配分します</div>
     </div>
 
     <div class="card">
@@ -244,7 +250,7 @@
     </div>
   </div>
 
-  <!-- ==================== TAB 2: 設定（レベリ・固定・メンバー・別コート指定） ==================== -->
+  <!-- ==================== TAB 2: 設定 ==================== -->
   <div id="tabSettings" style="display: none;">
     <h1>⚙️ メンバー・役割設定</h1>
 
@@ -274,16 +280,18 @@
         <button class="btn-secondary" style="font-size: 0.75rem; padding: 2px 6px;" onclick="clearAll()">全削除</button>
       </div>
       <div class="hint" style="margin-bottom: 10px;">
-        <b>👑 レベリ</b>: 全体を取り仕切る人（丸を選択）<br>
-        <b>固定区分</b>: タップして <b>☆なし ➔ ★固定 ➔ ◆第2固定</b> を切替
+        <b>👑 レベリ</b>: 全体統括（各コートリーダーも兼ねます）<br>
+        <b>🏸 リーダー</b>: 各コートの仕切り役（各コート1人配分）<br>
+        <b>固定区分</b>: ☆なし ➔ ★固定 ➔ ◆第2固定
       </div>
       <table class="settings-table">
         <thead>
           <tr>
             <th>名前</th>
-            <th style="width: 60px;">👑レベリ</th>
-            <th style="width: 80px;">固定区分</th>
-            <th style="width: 40px;">削除</th>
+            <th style="width: 48px;">👑レベリ</th>
+            <th style="width: 65px;">🏸リーダー</th>
+            <th style="width: 75px;">固定区分</th>
+            <th style="width: 35px;">削除</th>
           </tr>
         </thead>
         <tbody id="settingsTableBody"></tbody>
@@ -291,7 +299,7 @@
     </div>
   </div>
 
-  <!-- ==================== 下部タブバー ==================== -->
+  <!-- 下部タブバー -->
   <div class="tab-bar">
     <div class="tab-item active" id="tabBtnHome" onclick="switchTab('home')">
       <span class="tab-icon">🎾</span>
@@ -304,23 +312,22 @@
   </div>
 
   <script>
-    // 初期データはすべてダミー名（コード上には個人情報なし）
     const defaultMembers = [
-      { name: 'メンバーA', status: 'normal', isLeader: true, koteiLevel: 1 },
-      { name: 'メンバーB', status: 'normal', isLeader: false, koteiLevel: 1 },
-      { name: 'メンバーC', status: 'normal', isLeader: false, koteiLevel: 1 },
-      { name: 'メンバーD', status: 'normal', isLeader: false, koteiLevel: 2 },
-      { name: 'メンバーE', status: 'normal', isLeader: false, koteiLevel: 2 },
-      { name: 'メンバーF', status: 'normal', isLeader: false, koteiLevel: 0 },
-      { name: 'メンバーG', status: 'normal', isLeader: false, koteiLevel: 0 },
-      { name: 'メンバーH', status: 'normal', isLeader: false, koteiLevel: 0 },
-      { name: 'メンバーI', status: 'late', isLeader: false, koteiLevel: 0 }
+      { name: 'メンバーA', status: 'normal', isLeader: true, isCourtLeader: true, koteiLevel: 1 },
+      { name: 'メンバーB', status: 'normal', isLeader: false, isCourtLeader: true, koteiLevel: 1 },
+      { name: 'メンバーC', status: 'normal', isLeader: false, isCourtLeader: true, koteiLevel: 1 },
+      { name: 'メンバーD', status: 'normal', isLeader: false, isCourtLeader: false, koteiLevel: 2 },
+      { name: 'メンバーE', status: 'normal', isLeader: false, isCourtLeader: false, koteiLevel: 2 },
+      { name: 'メンバーF', status: 'normal', isLeader: false, isCourtLeader: false, koteiLevel: 0 },
+      { name: 'メンバーG', status: 'normal', isLeader: false, isCourtLeader: false, koteiLevel: 0 },
+      { name: 'メンバーH', status: 'normal', isLeader: false, isCourtLeader: false, koteiLevel: 0 },
+      { name: 'メンバーI', status: 'late', isLeader: false, isCourtLeader: false, koteiLevel: 0 }
     ];
 
     let members = [];
     let separatePairs = [];
     let lastCourtGroups = [];
-    const STORAGE_KEY = 'tennis_app_state_v3';
+    const STORAGE_KEY = 'tennis_app_state_v4';
 
     window.onload = () => {
       loadAll();
@@ -350,6 +357,10 @@
         if (saved) {
           const state = JSON.parse(saved);
           members = Array.isArray(state.members) && state.members.length > 0 ? state.members : defaultMembers;
+          // 旧データ互換: isCourtLeader が未定義ならレベリのみ true に
+          members.forEach(m => {
+            if (m.isCourtLeader === undefined) m.isCourtLeader = !!m.isLeader;
+          });
           separatePairs = Array.isArray(state.separatePairs) ? state.separatePairs : [];
           if (state.courtSetting) document.getElementById('courtSetting').value = state.courtSetting;
           if (Array.isArray(state.lastCourtGroups)) lastCourtGroups = state.lastCourtGroups;
@@ -427,6 +438,11 @@
         const tr = document.createElement('tr');
         const isLeaderChecked = m.isLeader ? 'checked' : '';
 
+        // コートリーダーのボタンスタイル
+        const clActive = m.isCourtLeader || m.isLeader;
+        const clClass = clActive ? 'btn-cl-tag active' : 'btn-cl-tag';
+        const clText = clActive ? '有' : '無';
+
         let tagText = '☆ なし';
         let tagClass = 'btn-kotei-tag';
         if (m.koteiLevel === 1) {
@@ -441,6 +457,9 @@
           <td>${m.name}</td>
           <td>
             <input type="radio" name="leaderRadio" value="${idx}" ${isLeaderChecked} onchange="setLeader(${idx})">
+          </td>
+          <td>
+            <span class="${clClass}" onclick="toggleCourtLeader(${idx})">${clText}</span>
           </td>
           <td>
             <span class="${tagClass}" onclick="cycleKotei(${idx})">${tagText}</span>
@@ -522,9 +541,20 @@
       members.forEach((m, i) => {
         m.isLeader = (i === idx);
       });
-      members[idx].koteiLevel = 1;
+      members[idx].isCourtLeader = true; // レベリは自動でコートリーダー兼任
+      members[idx].koteiLevel = 1;      // レベリは固定
       save();
       renderAll();
+    }
+
+    function toggleCourtLeader(idx) {
+      if (members[idx].isLeader) {
+        alert('レベリは常にコートリーダーを担当します');
+        return;
+      }
+      members[idx].isCourtLeader = !members[idx].isCourtLeader;
+      save();
+      renderSettings();
     }
 
     function cycleKotei(idx) {
@@ -539,7 +569,7 @@
       const name = input.value.trim();
       if (!name) return;
       if (!members.some(m => m.name === name)) {
-        members.push({ name: name, status: 'normal', isLeader: false, koteiLevel: 0 });
+        members.push({ name: name, status: 'normal', isLeader: false, isCourtLeader: false, koteiLevel: 0 });
         input.value = '';
         save();
         renderAll();
@@ -651,42 +681,44 @@
       return penalty;
     }
 
+    // コート割り生成（レベリ ➔ コートリーダー各コート1人 ➔ 固定2人配分）
     function tryGenerateCourts(courtLabels, targetSizes, chosenLeaderCourt) {
       const numCourts = courtLabels.length;
       const leader = members.find(m => m.status === 'normal' && m.isLeader);
 
-      const normalKotei1 = members
-        .filter(m => m.status === 'normal' && m.koteiLevel === 1 && !m.isLeader)
-        .map(m => m.name).sort(() => Math.random() - 0.5);
+      // 通常出席のコートリーダー（レベリ以外）
+      const normalCLs = members
+        .filter(m => m.status === 'normal' && m.isCourtLeader && !m.isLeader)
+        .sort(() => Math.random() - 0.5);
 
-      const normalKotei2 = members
+      // 通常固定（リーダー枠に入らなかったメンバー）
+      const normalK1 = members
+        .filter(m => m.status === 'normal' && m.koteiLevel === 1 && !m.isLeader)
+        .sort(() => Math.random() - 0.5);
+
+      const normalK2 = members
         .filter(m => m.status === 'normal' && m.koteiLevel === 2 && !m.isLeader)
-        .map(m => m.name).sort(() => Math.random() - 0.5);
+        .sort(() => Math.random() - 0.5);
 
       const normalGeneral = members
-        .filter(m => m.status === 'normal' && (m.koteiLevel === 0 || !m.koteiLevel) && !m.isLeader)
+        .filter(m => m.status === 'normal' && (m.koteiLevel === 0 || !m.koteiLevel) && !m.isLeader && !m.isCourtLeader)
         .map(m => m.name).sort(() => Math.random() - 0.5);
 
-      const lateKotei1 = members
-        .filter(m => m.status === 'late' && m.koteiLevel === 1)
-        .map(m => m.name).sort(() => Math.random() - 0.5);
-
-      const lateKotei2 = members
-        .filter(m => m.status === 'late' && m.koteiLevel === 2)
-        .map(m => m.name).sort(() => Math.random() - 0.5);
-
-      const lateGeneral = members
-        .filter(m => m.status === 'late' && (m.koteiLevel === 0 || !m.koteiLevel))
-        .map(m => m.name).sort(() => Math.random() - 0.5);
+      const lateList = members
+        .filter(m => m.status === 'late')
+        .sort((a, b) => (b.isCourtLeader ? 1 : 0) - (a.isCourtLeader ? 1 : 0) || (b.koteiLevel || 0) - (a.koteiLevel || 0))
+        .sort(() => Math.random() - 0.5);
 
       const courts = courtLabels.map((label, idx) => ({
         label: label,
         targetSize: targetSizes[idx],
         normals: [],
         lates: [],
-        koteiCount: 0
+        koteiCount: 0,
+        hasCourtLeader: false
       }));
 
+      // 1. レベリ配置（レベリは配置されたコートのコートリーダーを兼任）
       if (leader) {
         let targetIdx = -1;
         if (chosenLeaderCourt && chosenLeaderCourt !== 'auto') {
@@ -697,13 +729,31 @@
         }
         courts[targetIdx].normals.push(leader.name);
         courts[targetIdx].koteiCount++;
+        courts[targetIdx].hasCourtLeader = true;
       }
 
-      let koteiQueue1 = [...normalKotei1];
+      // 2. 残りの各コートにコートリーダーを1人ずつ配分
+      const clQueue = [...normalCLs];
+      let startIdx = Math.floor(Math.random() * numCourts);
+      for (let i = 0; i < numCourts && clQueue.length > 0; i++) {
+        const cIdx = (startIdx + i) % numCourts;
+        if (!courts[cIdx].hasCourtLeader && courts[cIdx].normals.length < courts[cIdx].targetSize) {
+          const clMember = clQueue.shift();
+          courts[cIdx].normals.push(clMember.name);
+          courts[cIdx].hasCourtLeader = true;
+          if (clMember.koteiLevel > 0) courts[cIdx].koteiCount++;
+        }
+      }
+
+      // 3. 固定（★）を各コート最大2人まで優先配分（リーダーとして入った人は除外）
+      const placedNames = new Set();
+      courts.forEach(c => c.normals.forEach(n => placedNames.add(n)));
+
+      let koteiQueue1 = normalK1.filter(m => !placedNames.has(m.name)).map(m => m.name);
       for (let pass = 1; pass <= 2; pass++) {
-        let startIdx = Math.floor(Math.random() * numCourts);
+        let sIdx = Math.floor(Math.random() * numCourts);
         for (let i = 0; i < numCourts && koteiQueue1.length > 0; i++) {
-          const cIdx = (startIdx + i) % numCourts;
+          const cIdx = (sIdx + i) % numCourts;
           if (courts[cIdx].koteiCount < pass && courts[cIdx].normals.length < courts[cIdx].targetSize) {
             courts[cIdx].normals.push(koteiQueue1.shift());
             courts[cIdx].koteiCount++;
@@ -711,21 +761,23 @@
         }
       }
 
-      let lateKoteiQueue1 = [...lateKotei1];
+      // 4. 固定不足コートへ遅刻の固定配分
+      let lateK1 = lateList.filter(m => m.koteiLevel === 1).map(m => m.name);
       for (let pass = 1; pass <= 2; pass++) {
-        for (let i = 0; i < numCourts && lateKoteiQueue1.length > 0; i++) {
+        for (let i = 0; i < numCourts && lateK1.length > 0; i++) {
           if (courts[i].koteiCount < pass && (courts[i].normals.length + courts[i].lates.length) < courts[i].targetSize) {
-            courts[i].lates.push(lateKoteiQueue1.shift());
+            courts[i].lates.push(lateK1.shift());
             courts[i].koteiCount++;
           }
         }
       }
 
-      let koteiQueue2 = [...normalKotei2];
+      // 5. 第2固定から補充
+      let koteiQueue2 = normalK2.filter(m => !placedNames.has(m.name)).map(m => m.name);
       for (let pass = 1; pass <= 2; pass++) {
-        let startIdx = Math.floor(Math.random() * numCourts);
+        let sIdx = Math.floor(Math.random() * numCourts);
         for (let i = 0; i < numCourts && koteiQueue2.length > 0; i++) {
-          const cIdx = (startIdx + i) % numCourts;
+          const cIdx = (sIdx + i) % numCourts;
           if (courts[cIdx].koteiCount < pass && courts[cIdx].normals.length < courts[cIdx].targetSize) {
             courts[cIdx].normals.push(koteiQueue2.shift());
             courts[cIdx].koteiCount++;
@@ -733,29 +785,30 @@
         }
       }
 
-      let lateKoteiQueue2 = [...lateKotei2];
-      for (let pass = 1; pass <= 2; pass++) {
-        for (let i = 0; i < numCourts && lateKoteiQueue2.length > 0; i++) {
-          if (courts[i].koteiCount < pass && (courts[i].normals.length + courts[i].lates.length) < courts[i].targetSize) {
-            courts[i].lates.push(lateKoteiQueue2.shift());
-            courts[i].koteiCount++;
-          }
-        }
-      }
+      // 6. 残りのメンバーを通常/遅刻それぞれまとめる
+      courts.forEach(c => c.normals.forEach(n => placedNames.add(n)));
+      courts.forEach(c => c.lates.forEach(n => placedNames.add(n)));
 
-      const remainingNormals = [...koteiQueue1, ...koteiQueue2, ...normalGeneral].sort(() => Math.random() - 0.5);
-      const remainingLates = [...lateKoteiQueue1, ...lateKoteiQueue2, ...lateGeneral].sort(() => Math.random() - 0.5);
+      const unplacedNormals = members
+        .filter(m => m.status === 'normal' && !placedNames.has(m.name))
+        .map(m => m.name).sort(() => Math.random() - 0.5);
 
-      for (let i = numCourts - 1; i >= 0 && remainingLates.length > 0; i--) {
+      const unplacedLates = members
+        .filter(m => m.status === 'late' && !placedNames.has(m.name))
+        .map(m => m.name).sort(() => Math.random() - 0.5);
+
+      // 7. 遅刻者を後ろのコートから配分
+      for (let i = numCourts - 1; i >= 0 && unplacedLates.length > 0; i--) {
         if ((courts[i].normals.length + courts[i].lates.length) < courts[i].targetSize) {
-          courts[i].lates.push(remainingLates.shift());
+          courts[i].lates.push(unplacedLates.shift());
         }
-        if (i === 0 && remainingLates.length > 0) i = numCourts;
+        if (i === 0 && unplacedLates.length > 0) i = numCourts;
       }
 
+      // 8. 残りの空き枠を通常メンバーで埋める
       for (let i = 0; i < numCourts; i++) {
-        while ((courts[i].normals.length + courts[i].lates.length) < courts[i].targetSize && remainingNormals.length > 0) {
-          courts[i].normals.push(remainingNormals.shift());
+        while ((courts[i].normals.length + courts[i].lates.length) < courts[i].targetSize && unplacedNormals.length > 0) {
+          courts[i].normals.push(unplacedNormals.shift());
         }
       }
 
