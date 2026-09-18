@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <!-- 文字コード指定（文字化け防止に必須） -->
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <title>コート割りメーカー</title>
@@ -10,11 +9,9 @@
   <link rel="manifest" href="manifest.json">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  
-  <!-- ホーム画面での表示名 -->
   <meta name="apple-mobile-web-app-title" content="コート割">
   
-  <!-- iPhone用アイコン指定（?v=2を付けて強制更新） -->
+  <!-- iPhone用アイコン指定（?v=2で更新反映） -->
   <link rel="apple-touch-icon" href="icon.png?v=2">
   <link rel="icon" href="icon.png?v=2">
 
@@ -215,7 +212,7 @@
       <div class="card-title">⚙️ コート & レベリ配置設定</div>
       <div style="margin-bottom: 8px;">
         <label style="font-size: 0.8rem; font-weight: 600; color: #475569;">使用コート:</label>
-        <input type="text" id="courtSetting" value="4-6" placeholder="例: 4-6、D-F" oninput="onCourtSettingChange()">
+        <input type="text" id="courtSetting" value="1-3" placeholder="例: 1-3、D-F" oninput="onCourtSettingChange()">
       </div>
       <div>
         <label style="font-size: 0.8rem; font-weight: 600; color: #475569;">👑 レベリの配置コート:</label>
@@ -251,7 +248,6 @@
   <div id="tabSettings" style="display: none;">
     <h1>⚙️ メンバー・役割設定</h1>
 
-    <!-- 別コート指定（NGペア）設定エリア -->
     <div class="card">
       <div class="card-title">🚫 別コート指定（離したい2人）</div>
       <div class="hint" style="margin-bottom: 8px;">指定したペアは同じコートに入らないように優先して分離されます</div>
@@ -264,16 +260,14 @@
       <div id="separatePairList" style="display: flex; flex-wrap: wrap;"></div>
     </div>
 
-    <!-- メンバー新規追加 -->
     <div class="card">
       <div class="card-title">➕ メンバー新規追加</div>
       <div class="flex-row">
-        <input type="text" id="newMemberName" placeholder="名前 (例: 佐藤)">
+        <input type="text" id="newMemberName" placeholder="名前">
         <button onclick="addMember()">追加</button>
       </div>
     </div>
 
-    <!-- メンバー一覧 -->
     <div class="card">
       <div class="card-title">
         <span>📋 メンバー一覧 (<span id="totalCount">0</span>人)</span>
@@ -310,24 +304,23 @@
   </div>
 
   <script>
+    // 初期データはすべてダミー名（コード上には個人情報なし）
     const defaultMembers = [
-      { name: '加藤', status: 'normal', isLeader: true, koteiLevel: 1 },
-      { name: '宮島', status: 'normal', isLeader: false, koteiLevel: 1 },
-      { name: 'はせゆら', status: 'normal', isLeader: false, koteiLevel: 1 },
-      { name: 'ぱるきあ', status: 'normal', isLeader: false, koteiLevel: 2 },
-      { name: 'あんな', status: 'normal', isLeader: false, koteiLevel: 2 },
-      { name: 'きょうこ', status: 'normal', isLeader: false, koteiLevel: 0 },
-      { name: 'はる', status: 'normal', isLeader: false, koteiLevel: 0 },
-      { name: 'あいこ', status: 'normal', isLeader: false, koteiLevel: 0 },
-      { name: 'みゆう', status: 'late', isLeader: false, koteiLevel: 0 },
-      { name: 'りな', status: 'late', isLeader: false, koteiLevel: 0 },
-      { name: 'かのん', status: 'late', isLeader: false, koteiLevel: 0 }
+      { name: 'メンバーA', status: 'normal', isLeader: true, koteiLevel: 1 },
+      { name: 'メンバーB', status: 'normal', isLeader: false, koteiLevel: 1 },
+      { name: 'メンバーC', status: 'normal', isLeader: false, koteiLevel: 1 },
+      { name: 'メンバーD', status: 'normal', isLeader: false, koteiLevel: 2 },
+      { name: 'メンバーE', status: 'normal', isLeader: false, koteiLevel: 2 },
+      { name: 'メンバーF', status: 'normal', isLeader: false, koteiLevel: 0 },
+      { name: 'メンバーG', status: 'normal', isLeader: false, koteiLevel: 0 },
+      { name: 'メンバーH', status: 'normal', isLeader: false, koteiLevel: 0 },
+      { name: 'メンバーI', status: 'late', isLeader: false, koteiLevel: 0 }
     ];
 
     let members = [];
     let separatePairs = [];
     let lastCourtGroups = [];
-    const STORAGE_KEY = 'tennis_app_state_v2';
+    const STORAGE_KEY = 'tennis_app_state_v3';
 
     window.onload = () => {
       loadAll();
