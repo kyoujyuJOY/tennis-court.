@@ -11,12 +11,13 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="コート割">
   
-  <link rel="apple-touch-icon" href="icon.png?v=3">
-  <link rel="icon" href="icon.png?v=3">
+  <link rel="apple-touch-icon" href="icon.png?v=4">
+  <link rel="icon" href="icon.png?v=4">
 
   <style>
     :root {
       --primary: #0284c7;
+      --primary-dark: #0369a1;
       --bg: #f8fafc;
       --card-bg: #ffffff;
       --text: #0f172a;
@@ -34,8 +35,19 @@
       margin: 0;
       padding: 16px;
       padding-bottom: 80px;
+      position: relative;
+      overflow-x: hidden;
     }
-    h1 { font-size: 1.2rem; margin: 0 0 14px 0; text-align: center; }
+    h1 {
+      font-size: 1.25rem;
+      margin: 0 0 14px 0;
+      text-align: center;
+      cursor: pointer;
+      user-select: none;
+      transition: transform 0.1s;
+    }
+    h1:active { transform: scale(0.96); }
+
     .card {
       background: var(--card-bg);
       border-radius: 12px;
@@ -70,10 +82,13 @@
       font-size: 0.9rem;
       font-weight: 600;
       cursor: pointer;
+      user-select: none;
+      transition: background-color 0.15s, transform 0.1s;
     }
+    button:active { transform: scale(0.97); }
     button.btn-secondary { background: #e2e8f0; color: #334155; }
     button.btn-copy { background: var(--accent); }
-    
+
     .member-grid {
       display: flex;
       flex-wrap: wrap;
@@ -89,7 +104,9 @@
       cursor: pointer;
       user-select: none;
       border: 1px solid transparent;
+      transition: transform 0.1s;
     }
+    .home-badge:active { transform: scale(0.94); }
     .status-normal { background: #e0f2fe; color: #0369a1; border-color: #bae6fd; }
     .status-late { background: #fef3c7; color: #b45309; border-color: #fde68a; font-weight: bold; }
     .status-absent { background: #f1f5f9; color: #94a3b8; border-color: #e2e8f0; text-decoration: line-through; }
@@ -136,7 +153,6 @@
       border-color: #7dd3fc;
       font-weight: bold;
     }
-
     .btn-cl-tag.active {
       background: #ccfbf1;
       color: #0f766e;
@@ -176,6 +192,7 @@
     }
     .hint { font-size: 0.75rem; color: #64748b; margin-top: 6px; }
 
+    /* タブバー */
     .tab-bar {
       position: fixed;
       bottom: 0;
@@ -206,13 +223,84 @@
       font-weight: 700;
     }
     .tab-icon { font-size: 1.2rem; }
+
+    /* ギミック4: 覚醒ボタンアニメーション */
+    .btn-awakening {
+      background: linear-gradient(45deg, #f97316, #ef4444, #e11d48) !important;
+      box-shadow: 0 0 15px rgba(239, 68, 68, 0.75) !important;
+      animation: pulseGlow 0.5s infinite alternate !important;
+    }
+    @keyframes pulseGlow {
+      from { transform: scale(0.98); filter: brightness(1); }
+      to { transform: scale(1.03); filter: brightness(1.25); }
+    }
+    .screen-shake {
+      animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
+    }
+    @keyframes shake {
+      10%, 90% { transform: translate3d(-2px, 0, 0); }
+      20%, 80% { transform: translate3d(3px, 0, 0); }
+      30%, 50%, 70% { transform: translate3d(-5px, 0, 0); }
+      40%, 60% { transform: translate3d(5px, 0, 0); }
+    }
+
+    /* 隠し演出用モーダル共通 */
+    .easter-modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(4px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      padding: 20px;
+    }
+    .easter-modal {
+      background: #ffffff;
+      border-radius: 16px;
+      padding: 20px;
+      max-width: 340px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+      animation: modalPop 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    @keyframes modalPop {
+      0% { transform: scale(0.7); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .easter-modal-icon { font-size: 2.8rem; margin-bottom: 8px; }
+    .easter-modal-title { font-size: 1.1rem; font-weight: 800; color: #0f172a; margin-bottom: 8px; }
+    .easter-modal-body { font-size: 0.9rem; color: #475569; line-height: 1.6; margin-bottom: 16px; text-align: left; }
+    .easter-modal-btn { width: 100%; padding: 10px; border-radius: 8px; font-weight: 700; }
+
+    /* 紙吹雪Canvas */
+    #confettiCanvas {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 9998;
+    }
   </style>
 </head>
 <body>
 
+  <canvas id="confettiCanvas"></canvas>
+
+  <div id="easterModalOverlay" class="easter-modal-overlay" onclick="closeEasterModal()">
+    <div class="easter-modal" onclick="event.stopPropagation()">
+      <div id="easterModalIcon" class="easter-modal-icon">🎉</div>
+      <div id="easterModalTitle" class="easter-modal-title">タイトル</div>
+      <div id="easterModalBody" class="easter-modal-body">メッセージ</div>
+      <button class="easter-modal-btn" onclick="closeEasterModal()">OK</button>
+    </div>
+  </div>
+
   <!-- ==================== TAB 1: コート割（ホーム） ==================== -->
   <div id="tabHome">
-    <h1>🎾 コート割り</h1>
+    <!-- ギミック1: タイトル7回連打 -->
+    <h1 id="appTitle" onclick="handleTitleTap()">🎾 コート割り</h1>
 
     <div class="card">
       <div class="card-title">⚙️ コート & レベリ配置設定</div>
@@ -236,8 +324,14 @@
       <div class="member-grid" id="homeMemberList"></div>
     </div>
 
+    <!-- ギミック4: 生成ボタン長押し覚醒 -->
     <div style="margin-bottom: 14px; display: flex; gap: 8px;">
-      <button style="flex: 2; padding: 12px; font-size: 1rem;" onclick="generateCourtTable()">⚡ コート割りを生成</button>
+      <button id="btnGenerate" style="flex: 2; padding: 12px; font-size: 1rem;" 
+              onclick="onGenerateClick()"
+              ontouchstart="startAwakening(event)" ontouchend="cancelAwakening()"
+              onmousedown="startAwakening(event)" onmouseup="cancelAwakening()" onmouseleave="cancelAwakening()">
+        ⚡ コート割りを生成
+      </button>
       <button class="btn-secondary" style="flex: 1;" onclick="clearHistory()">履歴リセット</button>
     </div>
 
@@ -269,7 +363,8 @@
     <div class="card">
       <div class="card-title">➕ メンバー新規追加</div>
       <div class="flex-row">
-        <input type="text" id="newMemberName" placeholder="名前">
+        <!-- ギミック3: 隠しキーワード追加 -->
+        <input type="text" id="newMemberName" placeholder="名前 (裏技/チート入力で…)">
         <button onclick="addMember()">追加</button>
       </div>
     </div>
@@ -280,8 +375,8 @@
         <button class="btn-secondary" style="font-size: 0.75rem; padding: 2px 6px;" onclick="clearAll()">全削除</button>
       </div>
       <div class="hint" style="margin-bottom: 10px;">
-        <b>👑 レベリ</b>: 全体統括（各コートリーダーも兼ねます）<br>
-        <b>🏸 リーダー</b>: 各コートの仕切り役（各コート1人配分）<br>
+        <b>👑 レベリ</b>: 全体統括（長押しで格言発動）<br>
+        <b>🏸 リーダー</b>: 各コートの仕切り役（各面1人配分）<br>
         <b>固定区分</b>: ☆なし ➔ ★固定 ➔ ◆第2固定
       </div>
       <table class="settings-table">
@@ -312,6 +407,7 @@
   </div>
 
   <script>
+    // デフォルトメンバー（安全なダミー名）
     const defaultMembers = [
       { name: 'メンバーA', status: 'normal', isLeader: true, isCourtLeader: true, koteiLevel: 1 },
       { name: 'メンバーB', status: 'normal', isLeader: false, isCourtLeader: true, koteiLevel: 1 },
@@ -327,11 +423,12 @@
     let members = [];
     let separatePairs = [];
     let lastCourtGroups = [];
-    const STORAGE_KEY = 'tennis_app_state_v4';
+    const STORAGE_KEY = 'tennis_app_state_v5';
 
     window.onload = () => {
       loadAll();
       renderAll();
+      initConfetti();
     };
 
     function save() {
@@ -347,7 +444,7 @@
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
       } catch (e) {
-        console.error('保存に失敗しました', e);
+        console.error('保存失敗', e);
       }
     }
 
@@ -357,7 +454,6 @@
         if (saved) {
           const state = JSON.parse(saved);
           members = Array.isArray(state.members) && state.members.length > 0 ? state.members : defaultMembers;
-          // 旧データ互換: isCourtLeader が未定義ならレベリのみ true に
           members.forEach(m => {
             if (m.isCourtLeader === undefined) m.isCourtLeader = !!m.isLeader;
           });
@@ -372,7 +468,7 @@
           return;
         }
       } catch (e) {
-        console.error('復元に失敗しました', e);
+        console.error('復元失敗', e);
       }
       members = defaultMembers;
       separatePairs = [];
@@ -438,7 +534,6 @@
         const tr = document.createElement('tr');
         const isLeaderChecked = m.isLeader ? 'checked' : '';
 
-        // コートリーダーのボタンスタイル
         const clActive = m.isCourtLeader || m.isLeader;
         const clClass = clActive ? 'btn-cl-tag active' : 'btn-cl-tag';
         const clText = clActive ? '有' : '無';
@@ -453,10 +548,14 @@
           tagClass = 'btn-kotei-tag kotei-2';
         }
 
+        // ギミック2: レベリ長押しトリガー
         tr.innerHTML = `
           <td>${m.name}</td>
           <td>
-            <input type="radio" name="leaderRadio" value="${idx}" ${isLeaderChecked} onchange="setLeader(${idx})">
+            <input type="radio" name="leaderRadio" value="${idx}" ${isLeaderChecked} 
+                   onchange="setLeader(${idx})"
+                   ontouchstart="startLeaderLongPress(${idx})" ontouchend="cancelLeaderLongPress()"
+                   onmousedown="startLeaderLongPress(${idx})" onmouseup="cancelLeaderLongPress()" onmouseleave="cancelLeaderLongPress()">
           </td>
           <td>
             <span class="${clClass}" onclick="toggleCourtLeader(${idx})">${clText}</span>
@@ -492,9 +591,7 @@
         selB.appendChild(optB);
       });
 
-      if (members.length >= 2) {
-        selB.selectedIndex = 1;
-      }
+      if (members.length >= 2) selB.selectedIndex = 1;
 
       const pairListDiv = document.getElementById('separatePairList');
       pairListDiv.innerHTML = '';
@@ -510,12 +607,12 @@
       const p1 = document.getElementById('separateSelectA').value;
       const p2 = document.getElementById('separateSelectB').value;
       if (!p1 || !p2 || p1 === p2) {
-        alert('異なる2人のメンバーを選択してください');
+        showEasterModal('⚠️ 確認', '異なる2人のメンバーを選択してください。', '💡');
         return;
       }
       const exists = separatePairs.some(p => (p[0] === p1 && p[1] === p2) || (p[0] === p2 && p[1] === p1));
       if (exists) {
-        alert('そのペアは既に登録されています');
+        showEasterModal('⚠️ 登録済み', 'そのペアは既に登録されています。', '🚫');
         return;
       }
       separatePairs.push([p1, p2]);
@@ -541,15 +638,15 @@
       members.forEach((m, i) => {
         m.isLeader = (i === idx);
       });
-      members[idx].isCourtLeader = true; // レベリは自動でコートリーダー兼任
-      members[idx].koteiLevel = 1;      // レベリは固定
+      members[idx].isCourtLeader = true;
+      members[idx].koteiLevel = 1;
       save();
       renderAll();
     }
 
     function toggleCourtLeader(idx) {
       if (members[idx].isLeader) {
-        alert('レベリは常にコートリーダーを担当します');
+        showEasterModal('👑 レベリ権限', 'レベリは常に各コートの統括（リーダー）を兼任します！', '🎾');
         return;
       }
       members[idx].isCourtLeader = !members[idx].isCourtLeader;
@@ -564,12 +661,21 @@
       renderSettings();
     }
 
+    // ギミック3: 隠しコマンド対応メンバー追加
     function addMember() {
       const input = document.getElementById('newMemberName');
-      const name = input.value.trim();
-      if (!name) return;
-      if (!members.some(m => m.name === name)) {
-        members.push({ name: name, status: 'normal', isLeader: false, isCourtLeader: false, koteiLevel: 0 });
+      const val = input.value.trim();
+      if (!val) return;
+
+      const secretKeywords = ['裏技', 'うらわざ', 'チート', '神', 'JOY', '秘密', 'ひみつ', 'コマンド'];
+      if (secretKeywords.some(k => val.toUpperCase().includes(k.toUpperCase()))) {
+        input.value = '';
+        triggerEasterEgg3();
+        return;
+      }
+
+      if (!members.some(m => m.name === val)) {
+        members.push({ name: val, status: 'normal', isLeader: false, isCourtLeader: false, koteiLevel: 0 });
         input.value = '';
         save();
         renderAll();
@@ -603,12 +709,12 @@
     function clearHistory() {
       lastCourtGroups = [];
       save();
-      alert('割り振り履歴を消去しました。');
+      showEasterModal('🔄 履歴リセット', '前回の割り振り履歴を消去しました。完全ランダムで選出されます。', '🧹');
       document.getElementById('historyNote').textContent = '';
     }
 
     function parseCourts(str) {
-      const rawParts = str.replace(/ /g, ' ').split(/[,、\s]+/).filter(Boolean);
+      const rawParts = str.replace(/　/g, ' ').split(/[,、\s]+/).filter(Boolean);
       const result = [];
 
       rawParts.forEach(part => {
@@ -681,17 +787,14 @@
       return penalty;
     }
 
-    // コート割り生成（レベリ ➔ コートリーダー各コート1人 ➔ 固定2人配分）
     function tryGenerateCourts(courtLabels, targetSizes, chosenLeaderCourt) {
       const numCourts = courtLabels.length;
       const leader = members.find(m => m.status === 'normal' && m.isLeader);
 
-      // 通常出席のコートリーダー（レベリ以外）
       const normalCLs = members
         .filter(m => m.status === 'normal' && m.isCourtLeader && !m.isLeader)
         .sort(() => Math.random() - 0.5);
 
-      // 通常固定（リーダー枠に入らなかったメンバー）
       const normalK1 = members
         .filter(m => m.status === 'normal' && m.koteiLevel === 1 && !m.isLeader)
         .sort(() => Math.random() - 0.5);
@@ -699,10 +802,6 @@
       const normalK2 = members
         .filter(m => m.status === 'normal' && m.koteiLevel === 2 && !m.isLeader)
         .sort(() => Math.random() - 0.5);
-
-      const normalGeneral = members
-        .filter(m => m.status === 'normal' && (m.koteiLevel === 0 || !m.koteiLevel) && !m.isLeader && !m.isCourtLeader)
-        .map(m => m.name).sort(() => Math.random() - 0.5);
 
       const lateList = members
         .filter(m => m.status === 'late')
@@ -718,7 +817,7 @@
         hasCourtLeader: false
       }));
 
-      // 1. レベリ配置（レベリは配置されたコートのコートリーダーを兼任）
+      // 1. レベリ配置
       if (leader) {
         let targetIdx = -1;
         if (chosenLeaderCourt && chosenLeaderCourt !== 'auto') {
@@ -732,7 +831,7 @@
         courts[targetIdx].hasCourtLeader = true;
       }
 
-      // 2. 残りの各コートにコートリーダーを1人ずつ配分
+      // 2. 残りコートにコートリーダーを1人ずつ配分
       const clQueue = [...normalCLs];
       let startIdx = Math.floor(Math.random() * numCourts);
       for (let i = 0; i < numCourts && clQueue.length > 0; i++) {
@@ -745,7 +844,7 @@
         }
       }
 
-      // 3. 固定（★）を各コート最大2人まで優先配分（リーダーとして入った人は除外）
+      // 3. 固定（★）を各コート2人まで配分
       const placedNames = new Set();
       courts.forEach(c => c.normals.forEach(n => placedNames.add(n)));
 
@@ -821,14 +920,14 @@
       const chosenLeaderCourt = document.getElementById('leaderCourtSelect').value;
 
       if (courtLabels.length === 0) {
-        alert('コート指定を入力してください');
-        return;
+        showEasterModal('⚠️ 確認', 'コート指定（例: 1-3）を入力してください。', '🎾');
+        return false;
       }
 
       const activeMembers = members.filter(m => m.status !== 'absent');
       if (activeMembers.length === 0) {
-        alert('参加可能なメンバーがいません');
-        return;
+        showEasterModal('⚠️ 確認', '参加可能なメンバーがいません。出欠状況を確認してください。', '👥');
+        return false;
       }
 
       const numCourts = courtLabels.length;
@@ -872,13 +971,206 @@
       document.getElementById('resultCard').style.display = 'block';
 
       save();
+      return true;
     }
 
     function copyText() {
       const text = document.getElementById('resultText').textContent;
       navigator.clipboard.writeText(text).then(() => {
-        alert('コピーしました！そのままLINEに貼り付けられます。');
+        showEasterModal('📋 コピー完了！', '結果をクリップボードにコピーしました。<br>そのままLINEに貼り付けられます！', '✨');
       });
+    }
+
+    let titleTapCount = 0;
+    let titleTapTimer = null;
+
+    function handleTitleTap() {
+      titleTapCount++;
+      clearTimeout(titleTapTimer);
+      titleTapTimer = setTimeout(() => { titleTapCount = 0; }, 2500);
+
+      if (titleTapCount >= 7) {
+        titleTapCount = 0;
+        triggerEasterEgg1();
+      }
+    }
+
+    function triggerEasterEgg1() {
+      startConfetti();
+      showEasterModal(
+        '🎉 隠しモード解禁！',
+        '<b>今日もナイスサーブ！練習の仕切り、本当にお疲れさまです！🎾🔥</b><br><br>' +
+        '幹部・仕切り役のあなたの努力で今日も楽しいサークルが回っています。水分補給を忘れずに思いっきり楽しんでいきましょう！',
+        '🏆'
+      );
+    }
+
+    let leaderPressTimer = null;
+    const leaderSayings = [
+      '「今日の練習、全員1本良いの打ったら即交代な！」',
+      '「サーブ入らんやつは、コート外周ダッシュ1本追加！」',
+      '「声出してこ！テニスは声とノリで勝率が2割上がる！」',
+      '「チャンスボールミスったら、ボール拾い3往復確定な！」',
+      '「ダブルスはペアへの声かけが全て。ポジティブにいこう！」',
+      '「仕切り役特権：一番涼しい日陰コートは私が使います👑」'
+    ];
+
+    function startLeaderLongPress(idx) {
+      cancelLeaderLongPress();
+      leaderPressTimer = setTimeout(() => {
+        triggerEasterEgg2(idx);
+      }, 1500);
+    }
+
+    function cancelLeaderLongPress() {
+      if (leaderPressTimer) {
+        clearTimeout(leaderPressTimer);
+        leaderPressTimer = null;
+      }
+    }
+
+    function triggerEasterEgg2(idx) {
+      cancelLeaderLongPress();
+      const randomSaying = leaderSayings[Math.floor(Math.random() * leaderSayings.length)];
+      showEasterModal(
+        '👑 レベリの格言発動',
+        `<b>${members[idx].name}</b> からの一言：<br><br><i>${randomSaying}</i>`,
+        '👑'
+      );
+    }
+
+    function triggerEasterEgg3() {
+      showEasterModal(
+        '🕹️ シークレットコマンド認識！',
+        '<b>【開発者シークレットモード起動】</b><br><br>' +
+        '✅ フルコート全自動分散エンジン：稼働中<br>' +
+        '✅ 被り最小化・NGペア分離AI：アクティブ<br>' +
+        '✅ レベリ・コートリーダー最適配置：完了<br><br>' +
+        '裏技を発見したあなたに幸運のエールを！今日も最高の練習にしよう🎾✨',
+        '⚡'
+      );
+    }
+
+    let awakenTimer = null;
+    let isAwakened = false;
+
+    function startAwakening(e) {
+      isAwakened = false;
+      const btn = document.getElementById('btnGenerate');
+      awakenTimer = setTimeout(() => {
+        isAwakened = true;
+        btn.classList.add('btn-awakening');
+        btn.innerHTML = '🔥 覚醒召喚中… 🔥';
+        document.body.classList.add('screen-shake');
+        
+        setTimeout(() => {
+          document.body.classList.remove('screen-shake');
+          generateCourtTable();
+          startConfetti(1000);
+          showEasterModal(
+            '🔥 覚醒コート割り召喚！',
+            '<b>全集中！最強のコート割りを召喚しました！</b><br><br>実力・リーダー・相性・被り防止のすべてが黄金比率で結実した奇跡のペアリングです。コートへ出陣せよ！',
+            '⚡'
+          );
+          cancelAwakening();
+        }, 1200);
+      }, 2000);
+    }
+
+    function cancelAwakening() {
+      if (awakenTimer) {
+        clearTimeout(awakenTimer);
+        awakenTimer = null;
+      }
+      const btn = document.getElementById('btnGenerate');
+      btn.classList.remove('btn-awakening');
+      btn.innerHTML = '⚡ コート割りを生成';
+    }
+
+    function onGenerateClick() {
+      if (isAwakened) {
+        isAwakened = false;
+        return;
+      }
+      generateCourtTable();
+    }
+
+    function showEasterModal(title, bodyHtml, icon = '🎉') {
+      document.getElementById('easterModalTitle').textContent = title;
+      document.getElementById('easterModalBody').innerHTML = bodyHtml;
+      document.getElementById('easterModalIcon').textContent = icon;
+      document.getElementById('easterModalOverlay').style.display = 'flex';
+    }
+
+    function closeEasterModal() {
+      document.getElementById('easterModalOverlay').style.display = 'none';
+    }
+
+    // 紙吹雪パーティクルシステム
+    let confettiParticles = [];
+    let confettiAnimationId = null;
+
+    function initConfetti() {
+      const canvas = document.getElementById('confettiCanvas');
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      window.addEventListener('resize', () => {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+      });
+    }
+
+    function startConfetti(duration = 4000) {
+      const canvas = document.getElementById('confettiCanvas');
+      const ctx = canvas.getContext('2d');
+      const emojis = ['🎾', '✨', '🔥', '👑', '🎉', '⭐'];
+      confettiParticles = [];
+
+      for (let i = 0; i < 40; i++) {
+        confettiParticles.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * -canvas.height,
+          emoji: emojis[Math.floor(Math.random() * emojis.length)],
+          size: 18 + Math.random() * 16,
+          speedY: 2 + Math.random() * 4,
+          speedX: (Math.random() - 0.5) * 2,
+          rotation: Math.random() * 360,
+          rotSpeed: (Math.random() - 0.5) * 6
+        });
+      }
+
+      if (confettiAnimationId) cancelAnimationFrame(confettiAnimationId);
+
+      const startTime = Date.now();
+      function render() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        confettiParticles.forEach(p => {
+          p.y += p.speedY;
+          p.x += p.speedX;
+          p.rotation += p.rotSpeed;
+
+          ctx.save();
+          ctx.translate(p.x, p.y);
+          ctx.rotate((p.rotation * Math.PI) / 180);
+          ctx.font = `${p.size}px sans-serif`;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(p.emoji, 0, 0);
+          ctx.restore();
+
+          if (p.y > canvas.height + 50) {
+            p.y = -30;
+            p.x = Math.random() * canvas.width;
+          }
+        });
+
+        if (Date.now() - startTime < duration) {
+          confettiAnimationId = requestAnimationFrame(render);
+        } else {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+      }
+      render();
     }
 
     if ('serviceWorker' in navigator) {
